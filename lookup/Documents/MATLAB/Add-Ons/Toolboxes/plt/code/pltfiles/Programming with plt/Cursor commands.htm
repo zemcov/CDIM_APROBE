@@ -1,0 +1,677 @@
+<html>
+
+<head>
+<title>Cursor commands</title>
+<style>
+<!--
+span.mcode
+{ color: #ff0000;
+  font-family: 'Lucida Console', 'Andale Mono', 'Courier New', monospace;
+}
+h3 { color: #009988; font-size: 16pt; margin-bottom: 2pt }
+-->
+table.table1 { float: left; margin: 12px; }
+table.table2 { float: right; margin: 12px; }
+</style>
+</head>
+<body>
+
+<img src="../images/plt.png" width="300" height="160" align="right"></td>
+<br><h1>Cursor commands</h1> <br clear="left"><br><br>
+
+<br>The cursor pseudo object, the most complex pseudo object supported by plt, 
+consists of one or more markers and several uicontrols with complex 
+interactions. Because of this you normally will not create cursor objects on 
+your own, but will rely on plt to create them automatically when you specify the 
+data to be plotted. However it is possible to create a cursor object manually 
+with the cursor init command described at the end of this section. For many 
+casual plotting applications, the plt cursors will behave as desired out of the 
+box. For more sophisticated applications you may want to modify the cursoring 
+behavior using the plt parameters (DualCur, Xstring, Ystring, Options) or the independent
+cursor commands shown below.
+
+<h3>DualCur parameter:</h3>
+Normally the cursor value for only a single trace (referred to as the active trace) is
+shown in an edit box below the plot. However sometimes it is convenient to show the
+y-value for two traces simultaneously. This is done by using the <span class="mcode">'DualCur'</span>
+parameter which specifies a trace which will always have a display of its y-value on the screen
+in addition to the display of the active trace. Try out the
+<span class="mcode">editz.m</span> demo program which uses Dual Cursors to simultaneously
+display the magnitude and phase of a transfer function. (In fact, transfer
+function displays were the problem that inspired the Dual Cursor feature.)
+The alternate method of specifying the dual cursor trace (as an offset from the active trace)
+is indicated by using a negative number for the DualCur parameter. The demo program
+<span class="mcode">gui2.m</span> demonstrates the use of that mode.
+The use of the DualCur mode is covered in more detail near the end of the cursoring guide
+found here: <a href="../Using%20the%20plt%20window/Cursoring.htm">Cursoring</a>.
+
+<h3>Xstring and Ystring parameters:</h3>
+The <span class="mcode">'Xstring'</span> and <span class="mcode">'Ystring'</span> plt
+arguments allow you to add text strings just to the right of the cursor X or Y readout values.
+Since these strings occupy the same screen area as the delta cursor readouts, they get 
+covered up when you are in delta cursor mode (or a if a zoom window is visible). 
+However those are usually temporary modes, so as you will see, these strings 
+still prove useful.<br>
+
+<table class="table2" border="1" cellpadding="4" cellspacing="0" vspace="8" bordercolor="#9999ff">
+  <tr>
+    <td><font color="#4040ff"><i><b>String</b></i></font></td>
+    <td><font color="#4040ff"><i><b>Replacement value</b></i></font></td>
+  </tr>
+  <tr>
+    <td> <span class="mcode">@CID</span></td>
+    <td> cursor ID</td>
+  </tr>
+  <tr>
+    <td> <span class="mcode">@XVAL</span></td>
+    <td> active cursor X position</td>
+  </tr>
+  <tr>
+    <td> <span class="mcode">@YVAL</span></td>
+    <td> active cursor Y position</td>
+  </tr>
+  <tr>
+    <td> <span class="mcode">@XY</span></td>
+    <td> same as <span class="mcode">complex(@XVAL,@YVAL)</span></td>
+  </tr>
+  <tr>
+    <td> <span class="mcode">@IDX</span></td>
+    <td> active cursor index</td>
+  </tr>
+  <tr>
+    <td> <span class="mcode">@HAND</span></td>
+    <td> handle of active trace</td>
+  </tr>
+  <tr>
+    <td> <span class="mcode">@LNUM&nbsp;</span></td>
+    <td> line number of active trace</td>
+  </tr>
+  <tr>
+    <td> <span class="mcode">@XU</span></td>
+    <td> Xstring user value</td>
+  </tr>
+  <tr>
+    <td> <span class="mcode">@YU</span></td>
+    <td>Ystring user value</td>
+  </tr>
+</table>
+<br>Most of the power of the Xstring and Ystring parameters stem from
+their string replacement feature described in this table.
+Strings in the first column of the table
+are replaced with the value shown in the second column.
+<i>(The Xstring and Ystring are both updated every time the cursor is moved.)</i>
+<br clear=right>
+
+<h3>Xstring/Ystring Examples:</h3>
+
+Suppose it was important to see the 
+cursor index as well as the usual cursor x and y values (i.e. you want to know 
+that your are looking at the sixty fifth data element for instance). You could 
+do this as follows:
+<br><br>
+<span class="mcode">plt(x,y,'xstring','sprintf(&quot;index = %d&quot;,@IDX)');</span>
+<br><br>
+A string within a string (such as the <span class="mcode">'index = %d'</span>
+above) is normally written in Matlab using two consecutive 
+single quote characters on both sides of the string. Since this can get verbose 
+and confusing at times, callbacks defined within plt may use a double quote 
+character instead of two successive single quotes. That's why the double quotes 
+appear in the line above.
+<br><br>
+Although the mean of the active trace 
+y values can be shown using one of the usual cursor features, suppose you wanted 
+to display the mean of the entire data set (independent of the viewing window). 
+Suppose also that you want to continuously display the y/x ratio. (This ratio is 
+also a standard cursor feature, but its not continuously visible.) You could 
+accomplish both of those feats as follows:
+<br><br>
+<span class="mcode">plt(x,y,'xstring','sprintf(&quot;mean: %f&quot;,mean(get(@HAND,&quot;y&quot;)))',...<br>
+&nbsp; &nbsp; &nbsp; &nbsp; 'ystring','prin(&quot;Y/X: %5w&quot;,@YVAL/@XVAL)');</span>
+<br><br>
+Suppose your x axis is measured in 
+seconds with a zero reference of 5pm, 21-Jan-2007 UTC. The cursor x-axis readout 
+will be in seconds past the reference, but you may want an additional cursor 
+readout that shows the actual time of day. This can be accomplished as follows:
+<br><br>
+<span class="mcode">plt(t,y,'xstring',...<br>
+&nbsp; 'sprintf(&quot;utc:%s&quot;,datestr(datenum(&quot;21-Jan-07 17:00&quot;)+@XVAL/86400,13))');</span>
+<br><br>
+Note the 86400 (the number of seconds 
+in a day) is needed because date numbers are measured in days. If your x axis 
+unit was &quot;weeks&quot;, you would replace <span class="mcode">/86400</span> with
+<span class="mcode">*7</span>.&nbsp; If you removed the <span class="mcode">,13</span> 
+near the end of the line (date string format), then the readout would show the 
+complete date and time instead of just the time. Another way to code the 
+statement above is:
+<br><br>
+<span class="mcode">plt(t,y,'xstring','sprintf(&quot;utc: %s&quot;,datestr(@XU+@XVAL/86400,13))');<br>
+set(findobj(gcf,'tag','xstr'),'User',datenum(2007,1,21,17,0,0));</span>
+<br><br>
+The second statement puts the 
+reference time in the Xstring user value which is used by plt when updating the 
+Xstring. This method is much more convenient when the reference time can change. 
+Note that the reference time is identical to that used above, although it's 
+written in the vector format instead of the character format.
+<br><br>
+Sometimes the 1 second resolution provided by <span class="mcode">datestr</span> is
+not sufficient. You can increase this resolution to 1 millisecond by using the date
+string function provided by plt as follows:
+<br><br>
+<span class="mcode">plt(t,y,'xstring','sprintf(&quot;utc: %s&quot;,plt(&quot;datestr&quot;,@XU+@XVAL/86400,13))');</span>
+<br><br>
+Occasionally its useful to use an 
+edit box instead of a string for one or both of these customized cursor 
+controls. (The <span class="mcode">pltn.m</span> example does this for the Xstring,
+although the Ystring is still rendered as a text string.) To do that, simply insert
+a question mark before the string. The first example above is rewritten below to use an edit box.
+<br><br>
+<span class="mcode">plt(x,y,'xstring','?sprintf(&quot;index = %d&quot;,@IDX)');</span>
+
+<h3>Cursor commands</h3>
+
+<table border="1" cellpadding="8" cellspacing="0" vspace="12" bordercolor="#9999ff">
+  <tr>
+    <td valign="top"><font color="#4040ff" size="+2"><i><b>Notes:</b></i></font>
+    </td>
+    <td>The <span class="mcode">cid</span> (cursor ID) that appears in all the commands
+        shown below is an integer that identifies the cursor the command is to act on.
+        This integer is returned from the cursor initialization command used to create
+        the cursor. If an axis contains a cursor, its cid is saved in the axis user data.
+        (The cid stored in the axis user data is always a scalar since an axis may only
+        contain a single cursor object.) You can specify that the cid should be retrieved
+        from the axis user data by specifying a zero for the cid.
+        So for example the following two commands have the same effect:
+        <br><br><span class="mcode">plt('cursor',0,'set','visON')</span>
+        <br><span class="mcode">plt('cursor',get(gca,'user'),'set','visON')</span>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>The figure <span class="mcode">'cid'</span> application data variable contains a
+        vector with the cursor IDs for all the cursor objects in the figure. You can
+        specify that the cid should be retrieved from this vector by supplying a negative
+        number as the cid (for example -2 specifies the 2nd element of this vector). This means
+        that the following two lines have the same effect:
+       <br><br><span class="mcode"> xy=plt('cursor',-2,'get');</span>
+       <br><span class="mcode"> c=getappdata(gcf,'cid'); xy=plt('cursor',c(2),'get');</span>
+    </td>
+  </tr>
+
+  <tr>
+    <td>&nbsp;</td>
+    <td>All the following commands are case sensitive (unlike all the other plt parameters
+        previously described) and must use the exact case shown below.</td>
+  </tr>
+  <tr>
+      <td>&nbsp;</td>
+      <td>All the cursor commands below may return up to two arguments. If the return
+          arguments are listed for a cursor command, the return values will be as specified.
+          However if the return arguments are not listed for a particular command, the
+          first return value (if requested) will be the active cursor handle and the second
+          return value (if requested) will be the active line handle.</td>
+  </tr>
+</table>
+<br>
+<span class="mcode">[xy k] = plt('cursor',cid,'get',n);</span><br>
+Get x and y coordinates of the cursor location the last time it was on trace 
+#n. The trace number is optional - if it is not specified then the position of 
+the active trace is returned. xy is a complex value. Its real part is the cursor 
+x-coordinate and its imaginary part is the y coordinate. The second 
+return value (if requested) is the index into the x data vector of the cursor 
+position.
+<br><br>
+<span class="mcode">[n h] = plt('cursor',cid,'getActive');</span><br>
+Returns the line number of the active cursor. The second return value (if 
+requested) is the handle of the active trace.
+<br><br>
+<span class="mcode">h = plt('cursor',cid,'obj');</span><br>
+Returns an 13 element vector of handles to the following cursor objects:
+<br>
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" id="AutoNumber5">
+  <tr>
+    <td width="160">&nbsp; &nbsp; <font color="#4040ff"><b>1:</b></font>&nbsp; x label</td>
+    <td width="160">&nbsp; &nbsp; <font color="#4040ff"><b>5:</b></font>&nbsp; y cursor readout</td>
+    <td width="200">&nbsp; &nbsp; <font color="#4040ff"><b>09:</b></font>&nbsp; marker line-style button</td>
+    <td width="140">&nbsp; &nbsp; <font color="#4040ff"><b>13:</b></font>&nbsp; cursor marker</td>
+  </tr>
+  <tr>
+    <td>&nbsp; &nbsp; <font color="#4040ff"><b>2:</b></font>&nbsp; y label</td>
+    <td>&nbsp; &nbsp; <font color="#4040ff"><b>6:</b></font>&nbsp; y cursor expansion</td>
+    <td>&nbsp; &nbsp; <font color="#4040ff"><b>10:</b></font>&nbsp; delta button</td>
+  </tr>
+  <tr>
+    <td>&nbsp; &nbsp; <font color="#4040ff"><b>3:</b></font>&nbsp; x cursor readout</td>
+    <td>&nbsp; &nbsp; <font color="#4040ff"><b>7:</b></font>&nbsp; peak button</td>
+    <td>&nbsp; &nbsp; <font color="#4040ff"><b>11:</b></font>&nbsp; expansion box</td>
+  </tr>
+  <tr>
+    <td>&nbsp; &nbsp; <font color="#4040ff"><b>4:</b></font>&nbsp; x cursor expansion</td>
+    <td>&nbsp; &nbsp; <font color="#4040ff"><b>8:</b></font>&nbsp; valley button</td>
+    <td>&nbsp; &nbsp; <font color="#4040ff"><b>12:</b></font>&nbsp; delta cursor</td>
+    <td>&nbsp;</td>
+  </tr>
+</table>
+<br>
+<span class="mcode">u = plt('cursor',cid,'expHis');</span>
+<p style="margin-bottom: -18">Returns an array containing the display expansion history.<br>
+Each row contains one display expansion as [xmin,&nbsp;xmax,&nbsp;ymin,&nbsp;ymax,&nbsp;code] where:</p>
+  <ul>
+    <li>code = -1 &nbsp; indicates the row was not used
+    <li>code = &nbsp;0 &nbsp; indicates a valid display expansion
+    <li>code = &nbsp;1 &nbsp; indicates the current display limits
+  </ul>
+
+<p style="margin-bottom: -18"><span class="mcode">plt('cursor',cid,'visON');<br>
+plt('cursor',cid,'visOFF');</span><br>
+Shows or hides the following objects:</p>
+  <ul>
+    <li>peak/valley/delta cursor buttons
+    <li>active trace cursor
+    <li>auxiliary trace cursor (dual cursor)
+    <li>x and y axis edit boxes and respective labels
+    <li>xstring and ystring objects
+    <li>x-cursor slider
+    <li>cursor id string
+  </ul>
+<p style="margin-top: -14">Note that this function is invoked alternately (visOFF/visON) 
+when you right-click on the plot y-axis label (which also hides/shows the menu 
+box).</p>
+
+<span class="mcode">plt('cursor',cid,'aux','on');<br>
+plt('cursor',cid,'aux','off');</span><br>
+Shows or hides the auxiliary (dual) cursor and its edit box<br>
+
+<p style="margin-bottom: -18"><span class="mcode">plt('cursor',cid,'setObjPos',p);</span><br>
+Sets the cursor object positions to p, where p is a 9 by 4 element array. Each row contains (x,y,width,height) 
+which represents the position and size of the following objects:</p>
+    <ol>
+      <li>x-axis edit box label
+      <li>y-axis edit box label
+      <li>x-axis edit box (cursor readout)
+      <li>x-axis cursor expansion edit box
+      <li>y-axis edit box (cursor readout)
+      <li>y-axis cursor expansion edit box
+      <li>peak button
+      <li>valley button
+      <li>delta cursor button
+    </ol>
+<p style="margin-top: -14">Note that this command does not set the position of the optional x-axis 
+control slider. However you can set this position using the plt <span class="mcode">'xy'</span>
+parameter, or with a command such as:<br>
+<span class="mcode">set(findobj(gcf,'tag','xslider'),'position',p);</span></p>
+
+<span class="mcode">plt('cursor',cid,'xlim',p);</span><br>
+Set new x axis limits and update expansion history, where <span class="mcode"> p=[xmin,xmax]</span>
+<br><br>
+<span class="mcode">plt('cursor',cid,'ylim',p,pAux);</span><br>
+Set new y axis limits and update expansion history, where <span class="mcode">p=[ymin,ymax]</span>.<br>
+and optionally <span class="mcode">pAux=[ymin,ymax]</span> (for the right hand axis).
+<br><br>
+<span class="mcode">plt('cursor',cid,'xylim',p,pAux);</span><br>
+Set new x and y axis limits and update expansion history, where <span class="mcode">p=[xmin,xmax,ymin,ymax]</span>.<br>
+and optionally <span class="mcode">pAux=[ymin,ymax]</span> (for the right hand axis).
+<br><br>
+<span class="mcode">plt('cursor',cid,'exRestore',u);</span><br>
+Restores an expansion history previously saved in u.
+<br><br>
+<span class="mcode">plt('cursor',cid,'axisCB',fcn);</span><br>
+String <span class="mcode">fcn</span> will be evaluated whenever an axis limit is changed. 
+This cursor command overwrites any axis callback function entered using the
+<span class="mcode">'axisCB'</span> parameter on the plt 
+command line. The rules for string substitutions and function handles are the 
+same as mentioned below in the <span class="mcode">moveCB</span> command.
+<br><br>
+<span class="mcode">plt('cursor',cid,'moveCB',fcn);</span><br>
+String <span class="mcode">fcn</span> will be evaluated whenever the cursor is moved. Before the fcn string 
+is evaluated all occurrences of&nbsp; the strings in the 1st column of the table 
+above ( <span class="mcode">@CID, @XVAL, @YVAL, @XY, @IDX, @HAND, @LNUM, @XU, 
+@YU</span>) are replaced with the values in the 2nd column of that table. fcn is 
+not called by events initiated from outside the figure window containing the 
+cursor. (For example a button push that moves the cursor in another figure 
+window would not activate the callback. This prevents infinite loops when figure A modifies figure 
+B's cursor and visa versa.) If you do want to enable the callback for 
+external events, insert an extra semicolon as the first character of the moveCB callback string. 
+This cursor command overwrites any axis callback function entered 
+using the <span class="mcode">'moveCB'</span> parameters on the plt command 
+line. In addition to a string, <span class="mcode">fcn</span> may also be a 
+function handle of the form <span class="mcode">@func</span> or <span class="mcode">
+{@func,arg1,arg2,...,argn}</span>. Note that the string substitutions can't be 
+used with the function handle form of this parameter. Also note that a similar 
+callback is provided for the TraceID fields, although the string substitutions 
+allowed are different than the ones mentioned above. See the <span class="mcode">
+'TIDcback'</span> parameter under <a href="Trace%20properties.htm">Trace 
+properties</a>.
+<br><br>
+<span class="mcode">plt('cursor',cid,'moveCB2',fcn);</span><br>
+This call operates similarly to the set <span class="mcode">moveCB</span> command
+shown above and the functions specified in both these calls are executed whenever
+the cursor is moved. However normally you will not want to use this call because
+the <span class="mcode">moveCB2</span> function is used internally by plt to
+keep the CursorID tag (just to the left of the y-axis cursor readout) so that it
+always identifies the cursored trace name. It's also used by plt in the linked
+subplot mode to keep the plots in a column synchronized. In rare situations you may
+wish to modify those behaviors, which you can do with the <span class="mcode">moveCB2</span>
+function.
+<br><br>
+<span class="mcode">plt('cursor',cid,'setActive',a,k);</span><br>
+Switches the active cursor to the line specified 
+by&nbsp; <span class="mcode">a</span> (a must be an integer between 1 and the 
+number of lines in the plot). The cursor will be placed at index
+<span class="mcode">k</span>. If k (optional) is out of bounds or not supplied,
+then the cursor will be placed in the center of the array.
+When <span class="mcode">a</span> is zero (a special case), the active line
+remains the same and only the cursor index is changed - which would have the the
+same as calling the <span class="mcode">update</span> command (below).
+<br><br>
+<span class="mcode">plt('cursor',cid,'update',k);<br>plt('cursor',cid,'updateH',k);<br>
+plt('cursor',cid,'updateN',k);</span><br>
+Moves the active cursor to index k in the data set and calls any user 
+defined cursor callbacks (moveCB, xstring, ystring). If k is out of bounds, the
+cursor is set to the middle of the array associated with the active trace.
+If you do not supply the argument k, then the command does not move the cursor,
+however it does execute the cursor callbacks. If
+<span class="mcode">update</span> moves the cursor to an area that is not inside
+the current axis limits, it will shift the axis limits to make the cursored data
+element visible. However when the cursor is moved by <span class="mcode">updateH</span>
+the axis limits will never be adjusted. (Think of this as "Update, Hold".)
+Also updating the cursor with the <span class="mcode">updateN</span> command has the
+same effect as using the <span class="mcode">updateH</span> command except that the
+cursor callback function (defined by <span class="mcode">'MoveCB'</span>) is not
+called like it is with the <span class="mcode">update</span> and
+<span class="mcode">updateH</span> commands.
+<br><br>
+When the index is not needed we can abbreviate the update command by omitting
+the 'update' string. This means that the following two lines are equivalent:<br>
+<span class="mcode"> &nbsp; &nbsp; plt('cursor',cid);<br>
+ &nbsp; &nbsp; plt('cursor',cid,'update');</span><br>
+We can abbreviate the update command even more by omitting the cursor ID
+which defaults to -1. This means that the following two lines are equivalent:<br>
+<span class="mcode"> &nbsp; &nbsp; plt('cursor');<br>
+ &nbsp; &nbsp; plt('cursor',-1);</span><br>
+And finally there is one more variant of the update and updateH commands:<br>
+<span class="mcode"> &nbsp; &nbsp; plt('cursor',cid,'update',k,x,y);<br>
+ &nbsp; &nbsp; plt('cursor',cid,'updateH',k,x,y);</span><br>
+The moves the active cursor to the index k as above. Normally x and y would be
+the position of the kth element of the array associated with the active trace,
+in which case this command behaves the same as if you didn't include the
+last two parameters. However x and y can be any position on the axis, and
+the visible cursor marker will be moved to those coordinates. (It's rare
+to want to move the cursor off the line, but it may sometimes be useful.)
+<br><br>
+<span class="mcode">plt('cursor',cid,'peakval',0);<br>
+plt('cursor',cid,'peakval',1);</span><br>
+Moves the active cursor to the next peak (<span class="mcode">0</span>) or to
+the next valley (<span class="mcode">1</span>)
+<br><br>
+<span class="mcode">plt('cursor',cid,'clear');</span><br>
+All the cursor objects are deleted.
+<br><br>
+<span class="mcode">plt hideCur;</span><br>
+Has the same effect as right-clicking on the y-axis label. See
+<a href="../Using%20the%20plt%20window/Cursoring.htm">cursoring</a>. If you also 
+want to hide the TraceID box, use the commands:<br>
+<span class="mcode">tbox=findobj('user','TraceID');&nbsp;set([tbox;&nbsp;get(tbox,'child')],'vis','off')</span>.
+<br><br>
+<i>Note: The following cursor commands were designed primarily for plt internal use,
+   although sometimes they may also be useful in your programs. (These commands are case sensitive.)
+   The "0" in the first seven commands below refers to the current cursor. You may replace the "0"
+   with the actual cursor ID number, or "-n" to refer to the nth cursor.<br><br></i>
+<table>
+  <tr><td><span class="mcode">plt cleft 0 ZoomOut;</span></td>
+      <td>Zoom out both x & y axis by 40%.</td>
+  <tr><td><span class="mcode"><nobr>plt cright 0 ZoomOut; &nbsp;</nobr></span></td>
+      <td><br>Zoom in both x & y axis by 40%. With the functional form (which applies to the command above
+      as well), you may also include an additional argument which specifies the zoom ratio.
+      For example, this command specifies a 20% ratio (half of the default amount):
+      <span class="mcode"><nobr>plt('cright',0,'ZoomOut',.2);<nobr></span><br><br></td>
+  <tr><td><span class="mcode">plt cleft 0 peakval 0;</span></td>
+      <td>Move the cursor to the next peak. (The last argument may be omitted in this case.)</td>
+  <tr><td><span class="mcode">plt cleft 0 peakval 1;</span></td>
+      <td>Move the cursor to the next valley</td>
+  <tr><td><span class="mcode">plt cleft 0 peakval 2;</span></td>
+      <td>Reset the peak finder (i.e. move the cursor to the highest peak)</td>
+  <tr><td><span class="mcode">plt cleft 0 peakval 3;</span></td>
+      <td>Reset the valley finder (i.e. move the cursor to the lowest valley)</td>
+  <tr><td><span class="mcode">plt cleft 0 TGLlogy;</span></td>
+      <td>Toggle the y-axis between linear/log</td>
+  <tr><td><span class="mcode">plt cleft 0 TGLlogx;</span></td>
+      <td>Toggle the x-axis between linear/log</td>
+  <tr><td><span class="mcode">plt cright 0 TGLlogy;</span></td>
+      <td>Open Hardcopy menu</td>
+  <tr><td><span class="mcode">plt cright 0 TGLlogx;</span></td>
+      <td>Swap x & y axes</td>
+  <tr><td><span class="mcode">plt cleft 0 markCB;</span></td>
+      <td>Toggle the delta cursor mode on or off</td>
+  <tr><td><span class="mcode">plt cleft 0 mlsCB;</span></td>
+      <td>3 way toggle of all traces between markers only, lines only, and both lines & markers</td>
+  <tr><td><span class="mcode">plt cleft 0 mark;</span></td>
+      <td>Adds a text label identifying the current cursor location</td>
+  <tr><td><span class="mcode">plt xleft TGLgrid;</span></td>
+      <td>Toggle between grid lines and ticks</td>
+  <tr><td><span class="mcode">plt xright TGLgrid;</span></td>
+      <td>Toggle between default and alternate grid style</td>
+  <tr><td><span class="mcode">plt xleft TGLmenu;</span></td>
+      <td>Toggle the menu bar on/off</td>
+  <tr><td><span class="mcode">plt xright TGLmenu;</span></td>
+      <td>Open a cursor data window</td>
+  <tr><td><span class="mcode">plt xleft mark 2;</span></td>
+      <td>Open a window allowing editing plt figure colors</td>
+  <tr><td><span class="mcode">plt xleft mark 3;</span></td>
+      <td>Write a file saving the current plt figure colors</td>
+  <tr><td><span class="mcode">plt xleft EDIT 1;</span></td>
+      <td>Enter data editing (using last used editing mode)</td>
+  <tr><td><span class="mcode">plt xleft EDIT 2;</span></td>
+      <td>Open up data edit y-popup</td>
+  <tr><td><span class="mcode">plt xleft EDIT 5;</span></td>
+      <td>Exit data editing mode</td>
+  <tr><td><span class="mcode">plt xleft Yedit 1;</span></td>
+      <td>Open a window allowing editing the line properties of cursored trace.
+          (The command <span class="mcode"><nobr>plt xright mark;</nobr></span>) also does the same thing.</td>    
+  <tr><td><span class="mcode">plt xright Yedit 1;</span></td>
+      <td>Open a window allowing editing the plt figure properties</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 2;</span></td>
+      <td>Toggle multiCursor mode</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 3;</span></td>
+      <td>Toggle xView slider</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 4;</span></td>
+      <td>Cancel data editing mode</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 5;</span></td>
+      <td>Enter data edit mode (Range)</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 6;</span></td>
+      <td>Enter data edit mode (Range left/right)</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 7;</span></td>
+      <td>Enter data edit mode (Range up/down)</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 8;</span></td>
+      <td>Enter data edit mode (Insert)</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 9;</span></td>
+      <td>Enter data edit mode (Insert left/right)</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 10;</span></td>
+      <td>Enter data edit mode (Insert up/down)</td>    
+  <tr><td><span class="mcode">plt click Yedit 11;</span></td>
+      <td>Enter data edit mode (Modify)</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 12;</span></td>
+      <td>Enter data edit mode (Modify left/right)</td>    
+  <tr><td><span class="mcode">plt xleft Yedit 13;</span></td>
+      <td>Enter data edit mode (Modify up/down)</td>    
+  <tr><td><span class="mcode">plt xleft link;</span></td>
+      <td>Toggle right hand axis link status</td>
+  <tr><td><span class="mcode">plt xleft RMS;</span></td>
+      <td><br>Equivalent to clicking on the cursorID tag which rotates between the five cursor modes
+          [normal, Avg, RMS, y/x, sqrt(x^2+y^2)]. After five of these commands the cursor mode
+          will be the same as it was before the first of those commands (having rotated thru
+          all the modes).
+      </td>
+  </tr>
+
+</table>
+
+<h3>Mouse motion functions:</h3>
+
+If you create a figure with a plt command that includes the parameter
+<span class="mcode">'MotionZoom','funcname'</span>, then if you create a zoom box (see
+<a href="../Using%20the%20plt%20window/Zooming%20and%20panning.htm">The expansion box</a>)
+while you are adjusting the size of the zoom box the function
+<span class="mcode">funcname([x1 x2 y1 y2])</span> will be continually called as the mouse is 
+moved (i.e.&nbsp; for as long as the mouse button is held down). The coordinate 
+[x1 y1] is the position of the lower left corner of the zoom box and [x2 y2]
+is the coordinate of the upper right corner. It may require some imagination to 
+see how using such a parameter would enhance your user interface. The example
+<a href="Programming%20examples.htm">demo\gauss.m</a> shows how to use the 'MotionZoom' 
+function. Although the use of the MotionZoom feature in this program is not 
+inspirational, at least when you create a zoom box inside the gauss figure you 
+will see the effect that the MotionZoom parameter creates. A more practical demonstration
+of the use of this parameter can be seen in the <span class="mcode">pltmap.m</span> example.
+<br><br>
+In place of the character string <span class="mcode">'funcname'</span> you may also use
+<span class="mcode">@funcname</span> or to insert extra parameters to the function, use
+<span class="mcode">{@funcname&nbsp;param1&nbsp;param2}</span>. (The 4 element vector specifying
+the zoombox corners will be the 3rd parameter of the function in this example.) These
+alternate forms also apply to the other mouse motion functions
+<br><br>
+Including the parameter <span class="mcode">'MotionZup','funcname'</span> has a similar effect
+except that the function 'funcname' only is called when the mouse button is released. The
+MotionZoom and MotionZup functions are called when the zoom box moved or resized as well as when
+it is first created.
+<br><br>
+If you create a figure with a plt command that includes the parameter
+<span class="mcode">'MotionEdit','funcname'</span>, then if you use the data editing feature&nbsp; 
+(see <a href="../Using%20the%20plt%20window/Data%20editing.htm">Data Editing</a>) 
+while you are modifying a data value by dragging it with the mouse, the function
+<span class="mcode">funcname(a)</span> will be continually called as the mouse is moved (i.e.&nbsp; 
+for as long as the mouse button is held down). The parameter "a" is a nine element cell array
+containing information related to the edited trace. The first six of these might be useful:
+<ul><li><span class="mcode">a{1}:  </span>Cursor ID
+    <li><span class="mcode">a{2}:  </span>index of edited point
+    <li><span class="mcode">a{3}:  </span>edit cursor handle
+    <li><span class="mcode">a{4}:  </span>edit cursor shape (index)
+    <li><span class="mcode">a{5}:  </span>edit cursor marker size
+    <li><span class="mcode">a{6}:  </span>edit cursor line width
+</ul>
+As with the MotionZoom 
+parameter, it may require some imagination to see how to use it to enhance your 
+user interface. The example <a href="Programming%20examples.htm">demo\editz.m</a> 
+shows one way to use the MotionEdit function to enhance the user interface. In 
+this example you can see the advantage of the MotionEdit function and how
+useful (and impressive) it is when the the plots are updated while the data
+is being edited, instead of afterwards.
+The <span class="mcode">pltquiv.m</span> example also demonstrates the use of
+the MotionEdit parameter to update the polynomial interpolation of a vector field
+in real time.
+<br><br>
+You may also create, modify, or remove these mouse motion functions after the call to plt by
+modifying the corresponding application data variable associated an axis.
+For example these commands will set the mouse motion functions as expected:<br>
+<span class="mcode"> &nbsp; &nbsp; setappdata(gca,'MotionZoom','funcA');</span><br>
+<span class="mcode"> &nbsp; &nbsp; setappdata(gca,'MotionZup',@funcB);</span><br>
+<span class="mcode"> &nbsp; &nbsp; setappdata(gca,'MotionEdit',{@funcC param1});</span><br>
+
+    
+<h3>Creating a cursor pseudo object:</h3>
+
+Usually the cursor objects are initialized from the main <span class="mcode">
+plt()</span> call that specifies the data arrays to be plotted. However you may 
+also create the cursor objects using this cursor 'init' call after creating a 
+figure on your own (i.e. without using the plt pseudo object).
+<br><br>
+<span class="mcode">Ret1 = plt('cursor',axis,'init',In1,In2,In3,In4,In5,In6,In7,In8,In9);</span><br>
+<p style="margin-bottom: -18">where:</p>
+<ul>
+<li><span class="mcode">Ret1: </span>the cursor ID (cid) used to control the cursor with additional calls to plt.
+<li><span class="mcode">axis: </span>a scalar if the 
+    cursor is assigned to a single axis. A two element row vector is used to assign 
+    the cursor to a pair of axes. The second axis (right hand axis) is normally overlaid on 
+    top of the primary axis and is used to provide a separate y-coordinate axis on 
+    the right and side of the graph.
+<li><span class="mcode">In1: </span>
+    <table class="table2" border="1" cellpadding="4" cellspacing="0" vspace="8" hspace="50" bordercolor="#9999ff">
+      <tr> <td align="center"><font color="#4040ff"><b>Row</b></font></td>
+           <td><font color="#4040ff"> &nbsp; <b>[x y w h]</b></font></td> </tr>
+      <tr> <td align="center">1</td>  <td> &nbsp; label for x cursor readout</td> </tr>
+      <tr> <td align="center">2</td>  <td> &nbsp; label for y cursor readout</td> </tr>
+      <tr> <td align="center">3</td>  <td> &nbsp; x cursor readout</td> </tr>
+      <tr> <td align="center">4</td>  <td> &nbsp; x cursor expansion</td> </tr>
+      <tr> <td align="center">5</td>  <td> &nbsp; y cursor readout</td> </tr>
+      <tr> <td align="center">6</td>  <td> &nbsp; y cursor expansion</td> </tr>
+      <tr> <td align="center">7</td>  <td> &nbsp; peak find button</td> </tr>
+      <tr> <td align="center">8</td>  <td> &nbsp; valley find button</td> </tr>
+      <tr> <td align="center">9</td>  <td> &nbsp; delta cursor button</td> </tr>
+      <tr> <td align="center">10</td> <td> &nbsp; x-axis cursor slider <i>(optional) &nbsp;</i></td> </tr>
+    </table>
+    a 10 by 4 array containing
+    the positions of the cursor controls. Each row contains <nobr>[x y w h]</nobr>
+    where x,y is the position of the control and w,h is its size. The units for all
+    the values in the In1 array must be either pixels or normalized (no mixing units).
+    The last row specifies the position of the slider and is the only optional row.
+    If In1 contains only nine rows then the x-axis cursor slider will not be created. 
+    The rows of In1 are assigned as described in this table.
+    <br clear=right>
+    
+<li><span class="mcode">In2: </span>
+
+   <table class="table2" border="1" cellpadding="4" cellspacing="0" vspace="8" hspace="50" bordercolor="#9999ff">
+      <tr> <td align="center"><font color="#4040ff"><b>Row</b></font>
+           <td><font color="#4040ff"> &nbsp; <b>[r g b]</b></font>
+      <tr> <td align="center">1  <td> &nbsp; x/y cursor label color
+      <tr> <td align="center">2  <td> &nbsp; cursor readout color <sup>[*1]</sup>
+      <tr> <td align="center">3  <td> &nbsp; expansion box color
+      <tr> <td align="center">4  <td> &nbsp; delta cursor color
+      <tr> <td align="center">5  <td> &nbsp; line #1 cursor color <sup>[*1]</sup>
+      <tr> <td align="center">6  <td> &nbsp; line #2 cursor color <sup>[*1]</sup>
+      <tr> <td align="center">... <td> &nbsp; ............................... <sup>[*1]</sup>
+      <tr> <td align="center">4+n<br>(Must have a row for<br>each line object<br>that has a cursor)
+                                 <td> &nbsp; line #n cursor color <sup>[*1]</sup>
+       </table>
+      a 3 column array [red&nbsp;green&nbsp;blue] specifying the
+      colors for the cursors and cursor readout text.
+      The rows of In2 are defined as shown in this table.<br><br>
+      <sup>[*1]</sup> Set to [0 0 0] to make the color of this element track its associated line color.
+    <br clear=right>
+
+<li><span class="mcode">In3: </span>Text for the x/y cursor labels. <span class="mcode">
+['xlabel';'ylabel'] </span>or <span class="mcode">{'xlabel',&nbsp;'ylabel'}</span>
+
+<li><span class="mcode">In4: </span>Cursor markers. Must have one 
+marker for each line that has a cursor.<br>
+&nbsp;&emsp; &emsp; &nbsp; For example for 3 lines one could 
+use <span class="mcode">'+ox'</span> <br>
+&nbsp;&emsp; &emsp; &nbsp; or to use the same symbol for all 3 
+cursors use <span class="mcode">'+++'</span>.
+
+<li><span class="mcode">In5: </span>Cursor size (in points)
+
+<li><span class="mcode">In6: </span>Format strings for x and y cursor readouts.<br>
+&nbsp;&emsp; &emsp; &nbsp; e.g. <span class="mcode">['%2.1f';&nbsp;'%5w&nbsp;&nbsp;'] </span>or
+<span class="mcode">&nbsp;{'%2.1f','%5w'}.</span><br>
+&nbsp;&emsp; &emsp; &nbsp; (Type "help prin" for a description of these format strings.)
+
+<li><span class="mcode">In7: </span>Visible flag (first optional 
+argument).&nbsp;&nbsp; <span class="mcode">'on' </span>or <span class="mcode">
+'off'.</span>
+
+<li><span class="mcode">In8: </span>(optional) Monotonic flag.<br>
+&nbsp;&emsp; &emsp; &nbsp; Set to 1 if the x data is monotonically
+increasing,&nbsp; and 0 otherwise (such as with Nyquist plots).
+
+<li><span class="mcode">In9: </span>(optional) Axis limit change callback function.<br>
+&nbsp;&emsp; &emsp; &nbsp; Executed when the axis limits are changed.
+</ul>
+
+<table border="1" cellpadding="4" cellspacing="0" vspace="8" bordercolor="#9999ff">
+    <td valign="top"> <h3><font color="#006699">Notes: </font></h3> </td>
+    <td>When the <span class="mcode">plt('cursor','init'</span> 
+    function is called, plt will attempt to add cursors to all lines of 
+    the axis created by plt. If you want plt to skip adding cursors to some of 
+    the lines, you should tag the line with the string 
+    <span class="mcode">'SkipCur'</span>. For example, a cursor would not be 
+    created for a line created with the following command: 
+    <span class="mcode">line(x,y,'tag','SkipCur');</span> </td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>Another way to restrict which lines are to be cursored is to add the application data key 
+    <span class="mcode">'Lhandles'</span> to the axis. (For example: 
+    <span class="mcode">setappdata(ax,'Lhandles',[h1 h3]);</span> would tell the 
+    cursor initialization routine to add cursors only to those two handles.)</td>
+  </tr>
+</table>
+
+</body></html>

@@ -1,0 +1,128 @@
+<html>
+<head>
+<title>Introduction</title>
+
+</head>
+
+<body>
+
+<table width="100%">
+  <tr>
+    <td width="33%">
+    <h1>Introduction</h1>
+    </td>
+    <td width="33%" valign="top">
+    <font face="Arial" size="2"><br></font>
+    <font face="Arial" size="5"><br>plt version 01Jan17</font>
+    <font face="Arial" size="2"><br>Copyright &copy 2017, Paul Mennen</font>
+    </td>
+    <td width="33%">
+    <img src="../images/plt.png" width="300" height="160" align="right"></td>
+  </tr>
+</table>
+
+Matlab users may be interested in this toolbox for its focus in one or more of these three areas:
+<ol>
+<li><h3><font color="#ee3300">A plotting interface.</font> <i>An alternative to Matlab's
+        plot and plotyy routines</i></h3>
+<ul>
+    <li>Like plot, plt commands can be typed at the command prompt to display your workspace arrays. 
+        For simple commands the interface is the same.
+    <li>Optimized for data exploration.
+    <li>Improved zooming, panning,&nbsp;linear/log toggling, &amp; auto-scaling controls.
+    <li>You can interactively select which variables to plot (workspace plotting).
+    <li>Automatically generates a legend that also provides trace selection controls.
+    <li>Up to 999 traces on a single axis. (Limited to 99 traces if a legend is required).
+    <li>Fast and easy cursor movement with delta, rms, mean, y/x, and magnitude readouts.
+    <li>Support for dual y-axes and sub-plots, each with individual cursor control &amp; readout.
+    <li>Peak/Valley finder, display expansion history, and support for metric prefixes.
+    <li>Better looking grid lines with selectable color and style.
+    <li>Interactive editing of trace properties, figure colors, and annotations.
+    <li>Data editing (mouse or keyboard driven).
+    <li>Regular updates based suggestions from users.
+    <li>A major advantage of plt is the consistency and flexibility of the command line interface,
+        all explained in a single help file with includes example code for every important option.
+        You no longer will you have to hunt for the many obscure handle graphics commands used by
+        the native Matlab commands that are scattered throughout the Matlab documentation.<br><br>
+</ul>
+
+<li><h3><font color="#ee3300">A GUI building framework.</font> <i>An alternative to Matlab's guide</i></h3>
+<ul><li>Provides a framework for developing graphical user interfaces, usually involving 2D or 3D plotting
+    <li>Provides these <font color="#0000ff"><i><b>pseudo objects</b></i></font> (collections of Matlab
+        graphical objects with a single purpose):
+        <table>
+        <tr><td><ul>
+                <li><b>cursor</b>
+                <li><b>grid</b>
+                <li><b>plt</b>
+                </ul></td>
+            <td><ul>	 
+                <li><b>image</b>
+                <li><b>color picker</b>
+                <li><b>help text</b>
+                </ul></td>
+            <td><ul>	  
+                <li><b>slider</b>
+                <li><b>popup</b>
+                <li><b>edit object</b>
+                </ul></td>
+        </tr>
+        </table>
+    <li>Provides these <font color="#0000ff"><i><b>auxiliary functions</b></i></font> which perform tasks
+        commonly needed in plot oriented GUIs:
+        <table>
+        <tr><td><ul>
+                <li><b>pltt</b>
+                <li><b>prin</b>
+                <li><b>datestr</b>
+                </ul></td>
+            <td><ul>	 
+                <li><b>metricp</b>
+                <li><b>figpos</b>
+                <li><b>pltwater</b>
+                </ul></td>
+            <td><ul>	  
+                <li><b>Pvbar</b>
+                <li><b>Pebar</b>
+                <li><b>Pquiv</b>
+                </ul></td>
+        </tr>
+        </table>
+    <li>The capability to move and resize the pseudo objects and native Matlab objects while
+        recording the positions so that they can be made permanent.
+    <li>A methodology for combining these elements presented with a series of examples &amp; demo programs.
+        These examples are designed to demonstrate the use of the various pseudo objects.
+    </ul><br>
+
+<li><h3><font color="#ee3300">Signal Processing.</font> <i>Fourteen of the example programs, in addition to their role in
+        demonstrating various plt features, were also designed to have an educational value in the
+        signal processing field:</i></h3> 
+        <pre><font size="+1"> &nbsp; <b>&#9642; bounce.m  </b><i><font color="#0000ff">(random walks)</font></i>
+ &nbsp; <b>&#9642; curves.m  </b><i><font color="#0000ff">(classic plane curves)</font></i>
+ &nbsp; <b>&#9642; dice.m    </b><i><font color="#0000ff">(Monte Carlo simulation)</font></i>
+ &nbsp; <b>&#9642; editz.m   </b><i><font color="#0000ff">(z-plane analysis)</font></i>
+ &nbsp; <b>&#9642; gauss.m   </b><i><font color="#0000ff">(summation of random variables)</font></i>
+ &nbsp; <b>&#9642; gui2.m    </b><i><font color="#0000ff">(classical analog filters)</font></i>
+ &nbsp; <b>&#9642; julia.m   </b><i><font color="#0000ff">(Mandelbrot & Julia set fractals)</font></i>
+ &nbsp; <b>&#9642; pltquiv.m </b><i><font color="#0000ff">(Hermite polynomial interpolation)</font></i>
+ &nbsp; <b>&#9642; pltmap.m  </b><i><font color="#0000ff">(2-dimensional cubic interpolation)</font></i>
+ &nbsp; <b>&#9642; square.m  </b><i><font color="#0000ff">(synthesis of harmonic functions)</font></i>
+ &nbsp; <b>&#9642; tas.m     </b><i><font color="#0000ff">(aircraft performance modeling)</font></i>
+ &nbsp; <b>&#9642; weight.m  </b><i><font color="#0000ff">(classic sound level weighting curves)</font></i>
+ &nbsp; <b>&#9642; wfall.m   </b><i><font color="#0000ff">(clipping distortion effects)</font></i>
+ &nbsp; <b>&#9642; winplt.m  </b><i><font color="#0000ff">(fft windowing)</font></i>
+</font></pre>
+</ol>
+<br><hr><br><i>
+This toolbox has been extensively 
+tested and verified to run under all Matlab releases from 12.1 (ver 6.1) to R2016a under Windows&nbsp;10,
+Windows&nbsp;8, Windows&nbsp;7, Windows&nbsp;Vista, and Windows&nbsp;XP.
+Brief testing has also been done under the Mac and other Unix based platforms.</i>
+<br><br><hr><center>
+<br>I hope using plt enhances your Matlab experience.
+<br>I'm interested in hearing about your problems and suggestions.
+<br>You can reach me at &nbsp;<a href="mailto:paul@mennen.org">paul@mennen.org</a>.
+
+</body>
+
+</html>

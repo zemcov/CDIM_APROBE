@@ -1,0 +1,654 @@
+<html>
+<head>
+<title>Auxiliary functions</title>
+<style>
+<!--
+span.mcode
+{ color: #ff0000;
+  font-family: 'Lucida Console', 'Andale Mono', 'Courier New', monospace;
+}
+span.mcode2
+{ color: #4040ff;
+  font-family: 'Lucida Console', 'Andale Mono', 'Courier New', monospace;
+}
+span.cmt
+{ color: #4040ff;
+}
+h3 { color: #009988; margin-bottom: 0 }
+-->
+</style>
+</head>
+<body>
+
+<img src="../images/plt.png" width="300" height="160" align="right"></td>
+<br><h1>Auxiliary plt functions and .m files</h1> <br clear="left"><br><br>
+
+The first two functions in this list are part of plt.m and the remaining functions exist as as
+separate .m files in the main plt folder. The last four functions
+(<span class="mcode">Pvbar</span>,&nbsp;<span class="mcode">Pebar</span>,&nbsp;
+<span class="mcode">Pquiv</span>, and <span class="mcode">pltwater</span>)
+aid in creating special plot types. The other functions help solve text formatting issues that
+often arise when writing graphical interfaces.
+<br><br>
+<table cellpadding="8" cellspacing="0" width="100%">
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>pltt</h3><i>(add plt<br>trace)</i> 
+      </td></tr></table>
+    </td>
+    <td><span class="mcode">pltt</span> is so central to the way plt is used that this
+    auxiliary function was given its own section. Please refer to the
+    <a href="../Using%20the%20plt%20window/Adding%20traces.htm">Adding traces</a> section.
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>datestr</h3><i>(serial date<br>number to<br>ascii)</i> 
+      </td></tr></table>
+    </td>
+    <td><span class="mcode">s = plt('datestr',datenum,fmt)</span> is similar to
+        <nobr><span class="mcode">s = datestr(datenum,fmt) </span></nobr>except that it displays 
+        the time with 1 millisecond resolution instead of 1 second resolution used by 
+        the Matlab datestr function.
+	Let's compare the results from plt's and Matlab's date string functions:
+	<table>  
+	  <tr>  <td><span class="mcode"> &nbsp; a = now;
+	  <tr>  <td><span class="mcode"> &nbsp; datestr(a,13)             <td><span class="mcode2">03:51:46
+	  <tr>  <td><span class="mcode"> &nbsp; plt('datestr',a,13) &nbsp;<td><span class="mcode2">03:51:46.153
+	  <tr>  <td><span class="mcode"> &nbsp; datestr(a,14)             <td><span class="mcode2">03:51:46 AM
+	  <tr>  <td><span class="mcode"> &nbsp; plt('datestr',a,14)       <td><span class="mcode2">03:51:46.153 AM
+	  <tr>  <td><span class="mcode"> &nbsp; datestr(a,0)              <td><span class="mcode2">31-Mar-2015 03:51:46
+	  <tr>  <td><span class="mcode"> &nbsp; plt('datestr',a,0)        <td><span class="mcode2">31-Mar-2015 03:51:46.153
+	  <tr>  <td><span class="mcode"> &nbsp; datestr(a)                <td><span class="mcode2">31-Mar-2015 03:51:46
+	  <tr>  <td><span class="mcode"> &nbsp; plt('datestr',a)          <td><span class="mcode2">31-Mar-15 03:51:46.153
+	</table>
+        For a description of the allowable formats type <span class="mcode">help datestr</span>.
+        Note that the formats can include arbitrary formatting strings or integers representing
+	32 standardized formats. Notice carefully the last example in the table above
+	since the returned date format when no format code is specified is different between
+        plt's and Matlab's datestr function. (2 vs 4 character year).<br>
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>metricp</h3><i>(metric<br> prefixes)</i>
+      </td></tr></table>
+    </td>
+    <td><span class="mcode">[Ret1,&nbsp;Ret2] = plt('metricp',x);</span>
+    <br><br>
+    Used to convert a number to a form using standard metric prefixes. Ret1 is 
+    the metric prefix string that is most appropriate for displaying the value 
+    x, and Ret2 is the x multiplier. This is often useful for scaling plots to
+    avoid awkward scientific notation in the axis labels.
+	<table>  
+	  <tr><td><span class="mcode"> &nbsp; x = .3456E-6;
+	  <tr><td><span class="mcode"> &nbsp; sprintf('%.3e Volts',x)             <td><span class="mcode2">3.456e-007 Volts
+	  <tr><td><span class="mcode"> &nbsp; [pfix mult] = plt('metricp',x);
+	  <tr><td><span class="mcode"> &nbsp; sprintf('%.1f %sVolts',x*mult,pfix) &nbsp; <td><span class="mcode2">345.6 Nano-Volts
+	</table>
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>prin.m</h3><i>(sprintf<br>& fprintf<br>alternative)</i>
+      </td></tr></table>
+    </td>
+    <td><span class="mcode">s = prin(fmtstr,OptionalArguments); <br>
+                            s = prin(FID,fmtstr,OptionalArguments);</span>
+    <br><br>	
+    Converts the OptionalArguments to a string s using the format specified by fmtstr. Note that this
+    does the same thing as sprintf or fprintf (with the same calling sequences) except that prin offers some
+    additional features including four extra formatting codes. prin calls the Pftoa
+    function described below to implement the new formatting codes. FID is usually a value returned from fopen
+    but can also be a 1 or a 2 to direct the result to the Matlab command window.
+    For a complete description of this function, see <a href="../../prin.pdf">prin.pdf</a> (in the main plt folder). You can view that help file most quickly by simply typing
+    <span class="mcode">prin</span> (i.e. with no arguments) at the Matlab command prompt.
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>Pftoa.m</h3><i>(float to<br>ascii)</i>
+      </td></tr></table>
+    </td>
+    <td> <span class="mcode">s = Pftoa(fmtstr,x)</span> returns in string
+         <span class="mcode">s</span> an ascii representation of the scalar number
+         <span class="mcode">x</span> according to the formatting string
+         <span class="mcode">fmtstr</span>.
+	 <br><br>
+         If <span class="mcode">fmtstr</span> is of the form <span class="mcode">'%nW'</span> then
+         <span class="mcode">s</span>will be the string representation of x with the 
+         maximum resolution possible while using <i><b>at most</b></i> n characters.<p>
+         If <span class="mcode">fmtstr</span> is of the form <span class="mcode">'%nV'</span> then
+         <span class="mcode">s</span>will be the string representation of x with the 
+         maximum resolution possible while using <i><b>exactly</b></i> n characters.
+	 <br><br>
+	 If <span class="mcode">fmtstr</span> is of the form <span class="mcode">'%nw'</span> then
+         <span class="mcode">s </span>will be the string representation of x with the 
+         maximum resolution possible while using <i><b>at most</b></i> n characters - 
+         not counting the decimal point if one is needed.
+	 <br><br> 
+	 If <span class="mcode">fmtstr</span> is of the form <span class="mcode">'%nv'</span> then
+         <span class="mcode">s</span> will be the string representation of x with the 
+         maximum resolution possible while using <i><b>exactly</b></i> n characters - 
+         not counting the decimal point if one is needed.
+         <br><br>         
+	 The lower case formats (v,w) are typically used to generate strings to fit into gui 
+         objects of a fixed width. The reason the decimal point is not counted is 
+         that with the proportional fonts generally used in these gui objects, the 
+         extra space taken up by the decimal point is insignificant.
+         <br><br>         
+	 With all four format types, if the field width is too small to allow even one significant digit, then
+         <span class="mcode">'*'</span> is returned.
+	 <br><br>
+         <span class="mcode">fmtstr</span> may also use any of the numeric formats allowed with sprintf.
+	 For example:
+	 <br><br>
+         <span class="mcode">Pftoa('%7.2f',x) </span>is equivalent to <span class="mcode">sprintf('%7.2f',x)</span>
+         <br><br>
+         Typing <span class="mcode">Pftoa(0)</span> will create a test file which you may
+         find helpful in understanding the new floating point formats.
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>Pvbar.m</h3><i>(vertical<br>bar plots)&nbsp;&nbsp;</i>
+      </td></tr></table>
+    </td>
+    <td>This function is used to plot a series of vertical bars. It doesn't do any plotting itself,
+        but returns an array which is then plotted using plt (or even plot). For example, suppose you want to 
+        plot 4 vertical bars at x-axis locations 2,3,7,8. Each bar is to start at 
+        y=0 and extend up to y=6,6,5,1 respectively. The following line would meet 
+        this objective:<p> <span class="mcode">plt(Pvbar([2 3 7 8],0,[6 6 5 1]);</span>
+	<br><br>
+        Normally all three Pvbar arguments are vectors the same length, however in this case since the lower y position
+	of each bar is the same a constant may be used for the 2nd argument.
+	<br><br>
+        Although you don't have to know this to use it, Pvbar returns a complex 
+        array which is interpreted correctly by plt or plot to display the desired 
+        sequence of vertical bars. plt and plot displays complex arrays by plotting 
+        the real part of the array along the x-axis and the imaginary part of the 
+        array along the y-axis. The trick that Pvbar uses to display a series of 
+        lines with a single array stems from the fact that NaN values (not a number) 
+        are not plotted and can be used like a &quot;pen up&quot; command. (The Pebar 
+        and Pquiv functions described below use this same trick.)
+	<br><br>
+        The general form of the Pvbar function call is:
+        <br><br>	
+        <span class="mcode">v = Pvbar(x,y1,y2)</span>
+	<br><br>
+        If the inputs are row or column vectors, this would return a complex 
+        column vector which when plotted with plt or plot would produce a series of vertical
+	bars (of the same color) at x-axis locations given by x. y1 and y2 specify the lower and
+	upper limits of the vertical bar. It doesn't matter whether you list the upper or lower 
+        limit first. If y1 is a scalar, Pvbar expands it to a constant vector of the 
+        same size as y2.
+	<br><br>
+        Suppose you wanted to plot 30 red bars (specified by length 30 column vectors xr,yr1,yr2)
+	and 30 green bars (specified by length 30 column vectors xg,yg1,yg2).
+	You could do this with two calls to Pvbar as in:
+	<br><br>
+        <span class="mcode">plt(Pvbar(xr,yr1,yr2),Pvbar(xg,yg1,yg2));</span>
+	<br><br>
+        That's probably the first way you would think of, but if xr and xg happen 
+        to be the same length (as in this case) you can accomplish the same thing 
+        with a single call to Pvbar:
+	<br><br>
+        <span class="mcode">plt(Pvbar([xr xg],[yr1 yg1],[yr2 yg2]));</span>
+        <br><br>
+	The second form is especially convenient when plotting many bar series 
+        (generally each series in a different color). Interestingly, if you use plot 
+        instead of plt first form will not work so you must use the second form.
+	<br><br>
+        Note that Pvbar will expand the second argument in either dimension if 
+        needed. So for instance in the example above, if ya1 and yb1 were the same 
+        you could just use ya1 as the second argument. Or suppose the base (lower 
+        limit) of the first series was always 0 and the base of the second series 
+        was always -1. Then you could use [0 -1] as the second argument. If the base 
+        of all the bars in all the series was the same value, then the second 
+        argument may be a scalar.
+	<br><br>
+        To see Pvbar in action, look at the <a href="Programming%20examples.htm">
+        example program</a> <span class="mcode">pltvbar.m</span> in the demo folder.
+	This example also shows the use of the Pebar function described below.
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>Pebar.m</h3><i>(error bar<br>plots)&nbsp;&nbsp; </i>
+      </td></tr></table>
+    </td>
+    <td>This function is used to plot a series of vertical bars similar to the above 
+        Pvbar function with the addition of a small horizontal &quot;T&quot; section on the top and 
+        bottom of each bar. This is commonly used to depict an error bound of a 
+        function, or a range of values that may be achieved by a certain function. 
+        Another difference with Pvbar is the way the lower and upper y positions of the 
+        bars are specified. With Pebar, the first two arguments (x,y) specify a reference 
+        position for each vertical bar, which is normally (but not strictly necessary) 
+        somewhere in the middle of the bar. The third/fourth arguments (l,u) specify the 
+        distance between the reference position and the lower/upper end (respectively) 
+        of the vertical bar.
+	<br><br>
+	The general form of the Pebar function call is:
+	<br><br>	
+        <span class="mcode">e = Pebar(x,y,l,u,dx)</span>
+	<br><br>	
+        The position of the bottom of the error bars is <span class="mcode">y-l</span> 
+        and the top is <span class="mcode">y+u</span>. The last argument (<span class="mcode">dx</span>) 
+        is a scalar that specifies the width of the horizontal Ts as a percentage of 
+        the average x spacing. The last two arguments are optional. If <span class="mcode">
+        dx</span> is not specified it defaults to 30 (%). If <span class="mcode">u</span> 
+        is not specified it defaults to <span class="mcode">l</span> (the 3rd 
+        argument) in which case the reference coordinates become the midpoints of 
+        the error bars. <span class="mcode">e,x,y,l,u </span>are generally vectors 
+        or matrices of the same size, the only exception being that <span class="mcode">l</span>
+	and <span class="mcode">u</span> are are allowed to be scalar. Read the description
+	of Pvbar above for an explanation of how vector and matrix inputs are interpreted.
+	<br><br>
+        To see Pebar in action, look at the <a href="Programming%20examples.htm">
+        example program</a> <span class="mcode"> pltvbar.m</span> in the demo folder.
+	This example also shows the use of the Pvbar function described above.
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>Pquiv.m</h3><i>(vector<br>plots)</i>
+      </td></tr></table>
+    </td>
+    <td>This function is used to plot a vector fields represented by a set of arrows 
+        with arbitrary head and tail locations. It doesn't do any plotting itself, but 
+        returns an array which is then plotted using plt (or even plot). For example, 
+        suppose you wanted to plot 3 arrows (all in the same color) with tail locations 
+        (4,9) (2,3) and (1,7). Also suppose you wanted each vector to be of length one, 
+        pointing up, down, and the the right respectively. This could be done as follows:
+	<br><br>
+	<span class="mcode">plt(Pquiv([4;2;1],[9;3;7],[0;0;1],[1;-1;0]));</span>
+	<br><br>
+	This can also be done using Pquiv's complex input form as follows:
+	<br><br>
+	<span class="mcode">tail = [4+9i;2+3i;1+7i]; head = [1i;-1i;1];<br>
+	plt(Pquiv(tail,head));</span>
+	<br><br>
+        Note that row vectors could have been used instead of column vectors if 
+        desired. Now suppose in addition to those 3 vectors, you wanted to plot 3 more 
+        vectors (in a second color) with the same tail locations but pointing in the 
+        opposite direction. Using the previous assignments of <span class="mcode">tail</span>
+	and <span class="mcode">head</span>, This could be done as follows:
+	<br><br>
+        <span class="mcode">plt(Pquiv(tail,head),Pquiv(tail,-head));</span>
+	<br><br>
+	Or you could do the same thing with a single call to Pquiv:
+	<br><br>
+	<span class="mcode">plt(Pquiv(tail*[1 1],head*[1 -1]));</span>
+	<br><br>
+        Of course the equivalent 4 argument (real input) form of Pquiv could have been used as well.
+	<br><br>
+        There are 8 possible calling sequences for Pquiv depending on whether the 
+        input arguments are real or complex and on whether the optional arrow head size 
+        argument is included. Pquiv is smart enough to figure out which calling sequence you are using.<br><br>
+	<table border="3" cellpadding="4" cellspacing="0" vspace="8" hspace="20" bordercolor="#9999ff">
+        <tr>
+          <td><b><font color="#4040ff">Calling sequence</font></b></td>
+          <td align="center"><b><font color="#4040ff">Tail coordinates</font></b></td>
+          <td align="center"><b><font color="#4040ff">Arrow width/length</font></b></td>
+	  <td align="center"><b><font color="#4040ff">Arrow head size</font></b></td>
+        </tr> <tr>
+          <td>q = Pquiv(A,B)</td>
+          <td align="center">&nbsp; [real(A), imag(A)] &nbsp;</td>
+          <td align="center">[real(B), imag(B)] </td>
+          <td align="center">0.3</td>
+        </tr> <tr>
+          <td>q = Pquiv(A,B,h)</td>
+          <td align="center">[real(A), imag(A)] </td>
+          <td align="center">[real(B), imag(B)] </td>
+          <td align="center">h</td>
+        </tr> <tr>
+          <td>q = Pquiv(x,y,B)</td>
+          <td align="center">[x,y]</td>
+          <td align="center">[real(B), imag(B)] </td>
+          <td align="center">0.3</td>
+        </tr> <tr>
+          <td>q = Pquiv(x,y,B,h)</td>
+          <td align="center">[x, y]</td>
+          <td align="center">[real(B), imag(B)] </td>
+          <td align="center">h</td>
+        </tr> <tr>
+          <td>q = Pquiv(A,u,v)</td>
+          <td align="center">[real(A), imag(A)] </td>
+          <td align="center">[u, v] </td>
+          <td align="center">0.3</td>
+        </tr> <tr>
+          <td>q = Pquiv(A,u,v,h)</td>
+          <td align="center">[real(A), imag(A)] </td>
+          <td align="center">[u, v] </td>
+          <td align="center">h</td>
+        </tr> <tr>
+          <td>q = Pquiv(x,y,u,v)</td>
+          <td align="center">[x, y]</td>
+          <td align="center">[u, v] </td>
+          <td align="center">0.3</td>
+        </tr> <tr>
+          <td>q = Pquiv(x,y,u,v,h) &nbsp;</td>
+          <td align="center">[x, y]</td>
+          <td align="center">[u, v] </td>
+          <td align="center">h</td>
+        </tr>
+        </table>
+        <br>where:<br>
+        <span class="mcode">q,A,B</span> are complex vectors or matrices<br>
+        <span class="mcode">x,y,u,v</span> are real vectors or matrices<br>
+        <span class="mcode">h</span> is a scalar (Arrow head size - relative to vector length)
+	<br><br>
+        Read in the Pvbar description above how complex values and NaNs are used to 
+        generate the desired display. To see Pquiv in action, look at the <a href="Programming%20examples.htm">
+        example program</a> <span class="mcode">pltquiv.m</span> in the demo folder.
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>figpos.m</h3><i>(figure positioning)</i>
+      </td></tr></table>
+    </td>
+    <td>
+        Normally the position of a figure window is specified in pixels as:
+        <span class="mcode">[xleft&nbsp;ybottom&nbsp;width&nbsp;height]</span>
+        relative to the monitor, meaning that
+        xleft = 1 refers to the leftmost position of the monitor. However it
+        usually is more convenient to specify the figure relative to the
+        useable screen space, which takes into account the space needed for
+        the taskbar as well as the space needed for the window borders and
+        title bar.
+        <br><br>
+        Consider the following two methods of creating a new figure window:
+        <br><br><span class="mcode">
+        figure('BackgroundColor',[0 0 .1],'Position',p);<br>
+        figure('BackgroundColor',[0 0 .1],'Position',figpos(p);</span>
+        <br><br>
+        In the first method, the pixel coordinates in p are relative to the full
+        screen which especially with a multi-window GUI makes it impossible to
+        make good use of the screen area without knowing where the taskbar is
+        and other desktop variables. In the second line however the coordinates
+        in p are relative to a pre-defined clear area of the screen which are
+        converted into absolute screen coordinates by figpos (this routine).
+        <br><br>
+        To accomplish this, figpos must know the screen area that can accommodate
+        the Matlab figure window. It gets this information from the screencfg.m
+        routine which normally can determine the optimal border area automatically,
+        however it may resort to using predefined constants if you are using a
+        very old version of Matlab. It will warn you if this happens, and you
+        might want to review the comments in screencfg to see if you want to
+        adjust any of the constants. The way screencfg is called in figpos
+        it will only optimize the border area the first time it is called.
+        After that it gets the border area from the saved value (which is stored
+        both in the <span class="mcode">'border'</span> application data variable of the root object as
+        well as in the file screencfg.txt. This means that if you move or resize
+        the taskbar you should type "screencfg" at the command prompt so that
+        the border area is recalculated. If you want Matlab to recalculate the
+        border area every time it starts up, you could add the line
+        <span class="mcode">screencfg;</span> to Matlab's startup file, or the line
+        <span class="mcode">delete(which('screencfg.txt'));</span>
+        which would have the same effect.
+        <br><br>
+        First I will first explain how figpos computes the figure position from
+        the input argument, although you may find it easier to understand by
+        skipping ahead to the examples below.
+        <br><br>
+        In rare situations, you may want to specify the screen position using the standard Matlab
+        convention <span class="mcode">[left&nbsp;bottom&nbsp;width&nbsp;height]</span>
+        referenced to the screen without reference to the border areas. Of course, then you
+        don't need to call figpos in the first place ... except for the fact that
+        figpos is called automatically by plt, so we need a way to bypass the
+        usual figpos processing. The way to do that is simply to place an "i"
+        after any element in the 1x4 vector. For example:
+        <br><br>
+        <span class="mcode">figpos([40 50i 600 500])</span> returns the vector
+        <span class="mcode">[40&nbsp;50&nbsp;600&nbsp;500]</span>.
+        <br><br>
+        It doesn't matter which element contains the "i", and in fact you can put
+        the "i" in all 4 elements if you like, i.e.
+        <span class="mcode">figpos([400&nbsp;50&nbsp;600&nbsp;500]*1i);</span>
+        <br><br>
+        Suppose you call <span class="mcode">figpos([p1 p2 p3 p4])</span>
+        where all the terms are real and p3
+        and p4 are both positive. This is called "size priority mode" because the
+        getting the figure size correct takes priority over getting the left/bottom
+        position in the specified place. In this mode, figpos will return
+        <span class="mcode">[left&nbsp;bottom&nbsp;width&nbsp;height]</span> where:<pre>
+   <font color="#4040ff"><b>width  = </b></font>the smaller of p3 and the maximum clear width available
+   <font color="#4040ff"><b>height = </b></font>the smaller of p4 and the maximum clear height available
+   <font color="#4040ff"><b>left   = </b></font>p1 + left border width. However if this position would make the
+            right edge of the figure overflow the clear space available, then
+            the left edge is moved rightward just far enough so the figure fits.
+   <font color="#4040ff"><b>bottom = </b></font>p2 + bottom border width. However if this position would make the
+            top edge of the figure overflow the clear space available, then
+            the bottom edge is moved down just far enough so the figure fits.</pre>
+        Suppose you call <span class="mcode">figpos([p1 p2 -p3 p4])</span>, i.e. the same as the calling
+        sequence above except that the 3rd element is negative. The height and
+        bottom values are computed exactly as shown above (size priority), but
+        the width and left values are now computed as follows (position priority):<pre>
+   <font color="#4040ff"><b>left   = </b></font>p1 + left border width.
+   <font color="#4040ff"><b>width  = </b></font>p3. However if this width would make the right edge of the figure
+            overflow the clear space available, then the width is reduced by
+            just enough so that the figure fits.</pre>
+        Suppose you call <span class="mcode">figpos([p1 p2 p3 -p4])</span>, i.e. the 4th element is negative.
+        The left and width values are computed exactly as shown in the first all
+        positive (size priority mode) but the bottom and height values are now
+        computed as follows (position priority):<pre>
+   <font color="#4040ff"><b>bottom = </b></font>p2 + bottom border width.
+   <font color="#4040ff"><b>height = </b></font>p4. However if this height would make the top edge of the figure
+            overflow the clear space available, then the height is reduced
+            by just enough so that the figure fits.</pre>
+        If you call <span class="mcode">figpos([p1 p2 -p3 -p4])</span>, then both horizontal and vertical
+        coordinates use the position priority method described above.
+        <br><br>
+        An optional 5th value in the input vector is allowed to allocate extra space
+        for the title bar. You may want to do this if you know that a menu bar or
+        toolbar will be enabled since that will make the title bar larger. Since
+        this is not accounted for in the border area set up by screencfg, enabling
+        these features could cause the top edge of the figure to fall off the top
+        edge of the screen. For example:
+        <br><br>
+        <span class="mcode">figpos([p1 p2 p3 p4 48])</span> would allocate 48 extra pixels in the vertical
+        space which would be enough for the menu bar (about 21 pixels high) and
+        one toolbar (about 27 pixels high).
+        <br><br>
+        The default left/bottom coordinates are <span class="mcode">[5 5]</span>
+        which are used if they are not supplied. For example:
+        <br><br>
+        <span class="mcode">figpos([730 550])</span>
+        gives the same results as <span class="mcode">figpos([5&nbsp;5&nbsp;730&nbsp;550])</span>.<br>
+        <span class="mcode">figpos([730 550 21])</span>
+        gives the same results as <span class="mcode">figpos([5&nbsp;5&nbsp;730&nbsp;550 21])</span>.
+        <br><br>
+        You also may specify only the figure length or the figure width and let
+        figpos calculate the missing size parameter based on the most appropriate
+        aspect ration. For example <span class="mcode">figpos([1000&nbsp;0])</span>
+        and <span class="mcode">figpos([0&nbsp;944])</span> both give
+        the same results as <span class="mcode">figpos([1000&nbsp;944])</span>.
+        This particular aspect ratio (1.006)
+        was chosen so that if you plot a circle, the resulting figure is actually
+        looks circular rather than elliptical. For example, this line plots a
+        perfect circle using 600 points:
+        <br><br>
+        <span class="mcode">plt(exp((1:600)*pi*2i/599),'pos',[800 0])</span>
+        <br><br>
+        If you move your taskbar to a new location, for figpos to continue to work
+        properly you should edit the screencfg.m file by commenting out the
+        appropriate lines defining the taskbar location. Then to enable those
+        changes type <span class="mcode">screencfg</span> at the Matlab command
+        prompt, or simply restarting Matlab will enable the changes.
+        <br><br>
+        The following examples may clarify the specification described above:
+        <br><br>
+        The first example creates 5 plots of the same size placed on the screen
+        so that all the plots are as far away from each other as possible. The
+        first four plots are placed right at the edge of the screen at the four
+        corners, except not so close that any of the figure borders disappear
+        and of course not obscuring the taskbar no matter where the taskbar is
+        placed. On a small screen even the first four figures would overlap.
+        On a large screen, the first four figures would not overlap, but the
+        fifth figure would overlap the corners of the other four (unless the
+        screen had an exceptionally high resolution).
+        <span class="mcode"><pre>
+   y = rand(1,100);  sz = [700 480];     <font color="#4040ff">% data to plot and figure size</font>
+   plt(y,'pos',[ 0   0  sz]);            <font color="#4040ff">% bottom left corner</font>
+   plt(y,'pos',[Inf  0  sz]);            <font color="#4040ff">% top left corner</font>
+   plt(y,'pos',[ 0  Inf sz]);            <font color="#4040ff">% bottom right corner</font>
+   plt(y,'pos',[Inf Inf sz]);            <font color="#4040ff">% top right corner</font>
+   p = get(findobj('name','plt'),'pos'); <font color="#4040ff">% get positions of all 4 plt figures</font>
+   plt(y,'pos',mean(cell2mat(p))*1i);    <font color="#4040ff">% put 5th plot at the average position</font></pre></span>
+
+        The "*1i" in the above line is strictly necessary to prevent figpos from
+        adjusting the position using the current border information. The raw pixel
+        location is used because the get('pos') command returns raw pixel coordinates.
+        With the "*1i" removed, the last figure would not be at the exact arithmetic
+        mean position, but actually the error would probably be too small to notice.
+        <br><br>
+        The next example also creates four figures at the corners of the screen,
+        although this time, the first figure is a fixed size and the remaining
+        figures are tiled so as to fill all the remaining space on the screen.
+        <span class="mcode"><pre>
+   plt(y,'pos',[ 0   0   600  400]); <font color="#4040ff">% figure 1 is placed at the lower left corner</font>
+   plt(y,'pos',[ 0  440  600 -Inf]); <font color="#4040ff">% use all the remaining space above fig1</font>
+   plt(y,'pos',[615  0  -Inf  400]); <font color="#4040ff">% use all the remaining space to the right of fig1</font>
+   plt(y,'pos',[615 440 -Inf -Inf]); <font color="#4040ff">% use all the remaining space not used by figs 1-3</font></pre></span>
+        Note that in the example above an extra 15 pixels in width and 40 pixels in
+        height is used to create a small gap between the four figures.
+        <br><br>
+        In addition to the examples above, a good way to appreciate the value of
+        the figpos function is to run <span class="mcode">demoplt.m</span>
+        and cycle thru all the plt demo
+        programs using the "All Demos" button. Notice how well the various
+        windows are placed on the screen. You will appreciate the intelligence
+        of the placement even more if you are able to rerun the demos using a
+        different screen resolution and a different taskbar location. Without
+        the figpos function, many of the demos would have to be more complicated
+        to place their figures at appropriate screen positions.
+        </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>screencfg.m</h3><i>(screen configuration)</i>
+      </td></tr></table>
+    </td>
+    <td>If called without an argument, screencfg attempts to determine the
+        current screen borders automatically. If the automatic procedure fails,
+        then the predefined taskbar size and position defined in the file
+        <span class="mcode">TaskbarSZ.m</span> is assumed (which may be
+        edited if needed). The output of this function is a 4 or 5 element row
+        vector called the "border vector".
+        This border vector (in addition to being this function's return value)
+        is written in text form to <span class="mcode">screencfg.txt</span>
+        (in the same folder containing
+        screencfg.m), and is also saved in the <span class="mcode">'border'</span>
+        application property value of the Matlab root object.
+        <br><br>
+        If called with a vector argument, then the supplied argument is taken
+        to be the new border vector.
+        <br><br>
+        If called with a scalar argument, then screencfg first looks for the
+        'border' application property value. If this property exists, then
+        its value is returned and nothing further is done. However if the
+        'border' property does not exist, then screencfg will look for
+        the screencfg.txt file and if it exist will return the values stored
+        there and will also save this vector in the 'border' property. If the
+        screencfg.txt file also does not exist, then screencfg will behave
+        as if it was called without an argument (described above).
+        <br><br>
+        When a 4 element vector is used for the border vector, its form
+        is <span class="mcode">[left bottom right top]</span>
+        where each number represents the number
+        of pixels of clear space (i.e. not used for Matlab figures) that
+        must exist at the four edges of the screen indicated. When a 5
+        element vector is used its form is:<br><br>
+        <table border="3" cellpadding="4" cellspacing="0" vspace="8" hspace="20" bordercolor="#9999ff">
+        <tr><td><span class="mcode">[left&nbsp;bottom&nbsp;width&nbsp;height&nbsp;0]</td>
+            <td>The largest visible screen position in pixel units using the
+                standard Matlab figure positioning scheme.</td>
+        <tr><td><span class="mcode">[left bottom width height 1]</td>
+            <td>Same as above except that normalized coordinates are used.</td>
+        </table><br>
+      </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>pltwater.m</h3><i>(waterfall<br>plots)</i>
+      </td></tr></table>
+    </td>
+    <td><h4><font size="+2">A general purpose 3D surface (waterfall) display routine</font></h4>
+            <h4>Calling sequence:</h4>
+            <span class="mcode">pltwater(z,'Param1',Value1,'Param2',Value2);</span>
+            <ul><li>All arguments are optional except for z which is a matrix containing the surface data.    <li>Note that the arguments are arranged in Param/Value pairs.
+            <li>However you may omit the Value part of the pair, in which case the default value of 1 is used.
+            </ul>
+            <h4>pltwater recognizes the following 12 Param/Value pairs (case insensitive):</h4>
+            <table border="3" cellpadding="4" cellspacing="0" vspace="8" hspace="20" bordercolor="#9999ff">
+            <tr><td><span class="mcode">'go',1</td>       <td>The animation begins immediately as if you had pressed the start button.</td></tr>
+            <tr><td><span class="mcode">'go'</td>         <td>The same as above (since an omitted value is assumed to be one).</td></tr>
+            <tr><td><span class="mcode">'run'</td>        <td>The same as above. Note that all the sliders and check boxes mentioned              
+                                                              below may be adjusted even when the display is running (animation).</td></tr>
+            <tr><td><span class="mcode">'invert'</td>     <td>The surface is displayed upside down.</td></tr>
+            <tr><td><span class="mcode">'transpose'</td>  <td>The surface is rotated by 90 degrees (x/y swapped).</td></tr>
+            <tr><td><span class="mcode">'delay',v </td>   <td>A pause of v milliseconds occurs between display updates. Whatever value (v)
+                                                              is supplied, it may be changed later using the slider.</td></tr>
+            <tr><td><span class="mcode">'nT',v</td>       <td>Determines how many traces will be visible initially. Later you may change
+                                                              the number of visible traces using the slider. If the nT parameter is not
+                                                              included, 40 traces will be used (initially).</td></tr>
+            <tr><td><span class="mcode">'skip',v          <td>Initially v records (rows of z) are skipped between each record access.             
+                                                              (e.g. if v=1 only every other record is used.) This value may be modified using the slider.</td></tr>
+            <tr><td><span class="mcode">'dx',v</td>       <td>Successive traces of the waterfall display are displaced by v pixels to the
+                                                              right which adds a visual perspective. (No perspective is perceived if v is zero.)
+                                                              This value may be modified with the slider.</td></tr>
+            <tr><td><span class="mcode">'dy',v</td>       <td>Successive traces of the waterfall display are displaced in the vertical direction
+                                                              by v percent of the Zaxis limits. This value may be modified using the slider.</td></tr>
+            <tr><td><span class="mcode">'x',v</td>        <td>Specifies the x values corresponding to each column of z. If this parameter is
+                                                              not supplied, the value 1:size(z,2) is used.</td></tr>
+            <tr><td><span class="mcode">'y',v</td>        <td>Specifies the y values corresponding to each row of z.
+                                                              If this parameter is not supplied, the value 1:size(z,1) is used.</td></tr>
+            <tr><td><span class="mcode">'smooth',v</td>   <td>Line smoothing is a line property in most versions of Matlab (although it is not
+                                                              supported in R2014b or later). If this parameter is not included then line
+                                                              smoothing is enabled when the display is running (animating) and is disabled
+                                                              otherwise. That behavior may be modified as follows:
+                                                              <ul><li><span class="mcode">'smooth', 1 &nbsp; </span> Line smoothing is always enabled                                       
+                                                                  <li><span class="mcode">'smooth',-1 &nbsp; </span> Line smoothing is always disabled                                      
+                                                                  <li><span class="mcode">'smooth', 0 &nbsp; </span> The default line smoothing mode as described above.
+                                                              </ul>
+                                                              If you are using a version of Matlab that doesn't support line smoothing, pltwater
+                                                              will not enable line smoothing mode regardless of the setting of this parameter.
+            </table>
+            <br>If a parameter is included in the pltwater argument list that is not one of the
+            above 13 choices, then this parameter along with its corresponding value are
+            passed onto plt. The most common plt parameters used in the pltwater argument list
+            are: <pre><span class="mcode">       'TraceC'  'CursorC'  'FigBKc'     'LabelX'  'Pos'   'HelpText'
+       'Title'   'FigName'  'Linewidth'  'LabelY'  'xy'</span></pre>
+            <b>Refer to the <span class="mcode">wfalltst.m</span> demo program to see an example of creating an
+            application around <span class="mcode">pltwater</span></b>.
+       
+       </td></tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  </table>
+
+</body>
+
+</html>

@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>Adding traces</title>
+<style>
+<!--
+span.mcode
+{ color: #ff0000;
+  font-family: 'Lucida Console', 'Andale Mono', 'Courier New', monospace;
+}
+-->
+</style>
+</head>
+<body>
+
+<img src="../images/plt.png" width="300" height="160" align="right"></td>
+<br><h1>Adding traces</h1> <br clear="left"><br><br>
+
+From the command window, the most common way to start plt is with a command such as:
+<br><br>
+<span class="mcode">plt(x,y)</span>
+<br><br>
+where x and y contain the data that you want to plot. Of course this is the same as you
+would have done before being exposed to plt, except that you would have spelled it "<b>plot</b>".
+This command opens a new axis in a new figure window containing just the single trace defined
+by the x,y parameter pair. There are many ways to call plt so that multiple traces are defined,
+and most of these methods are also shared with the native Matlab <span class="mcode">plot</span>
+command. These methods are reviewed in the
+<a href="../Programming%20with%20plt/Calling%20sequence%20and%20line%20styles.htm">Calling&nbsp;sequence</a> section.
+<br><br>
+Where <span class="mcode">plt</span> and <span class="mcode">plot</span> diverge more noticeably
+is how you add traces to a figure that has already been created. With <span class="mcode">plot</span>
+this is done using the <span class="mcode">hold&nbsp;on</span> and <span class="mcode">hold&nbsp;off</span>
+commands that I think you will recognize as cumbersome after learning how it is done with
+<span class="mcode">plt</span>. The more traces you add, the more you will recognize the advantage of
+the active legend automatically provided by plt, both for identifying the traces and controlling
+which traces are visible. (Soon you may begin to wonder how you managed without plt.)
+<br><br>
+Assuming a single trace was defined using the plt command mentioned above, the command:
+<br><br>
+<span class="mcode">pltt(x1,y1,'TraceName')</span>
+<br><br>
+will cause a new trace defined by the x1,y1 pair to appear on the plot. Also a second entry will
+appear in the TraceID box with the trace name specified in the call to pltt. If you are feeling
+lazy, you could omit the trace name in the argument list, in which case a default (incrementing)
+trace name will be used. The more traces you add, the more you will realize that you should have
+specified the trace names all along.
+<br><br>
+When you type the plt command in the command window, space will be reserved in the TraceID box
+for eight additional traces (beyond those defined in the plt command itself) to be added using
+the pltt command. This is usually enough, but if you go beyond this limit, pltt will overwrite
+the trace data and traceID of the previously added trace to make room for the new trace being added.
+If you anticipate needing to add more than eight traces, you can allocate more space in the TraceID
+box using the <span class="mcode">+</span> parameter in the plt argument list.
+(The <span class="mcode">+</span> is the last parameter described in the
+<a href="../Programming%20with%20plt/Trace%20properties.htm">Trace&nbsp;properties</a> section.)
+<br><br>
+Usually you will probably find it most convenient to add just one trace at a time, however pltt
+also provides a few ways to add more than one trace at a time. (This is especially useful inside
+script files). For example, both of these commands:
+<br><br>
+<span class="mcode">pltt(x,{y1 y2 y3},{'new1' 'new2' 'new3'});</span><br>
+<span class="mcode">pltt(x,[y1;y2;y3],{'new1' 'new2' 'new3'});</span>
+<br><br>
+are equivalent to the three separate commands:
+<br><br>
+<span class="mcode">pltt(x,y1,'new1');</span><br>
+<span class="mcode">pltt(x,y2,'new2');</span><br>
+<span class="mcode">pltt(x,y3,'new3');</span><br>
+<br>
+Note that in the 2nd form above, it was assumed that y1,y2,y3 were row vectors. (If they were column vectors
+they would need to be delimited with spaces or commas in place of the semicolons.)
+<br><br>
+And one last form to consider for when you are adding traces with differing x data. The command:
+<br><br>
+<span class="mcode">pltt({x1 x2 x3},{y1 y2 y3},{'new1' 'new2' 'new3'});</span>
+<br><br>
+is equivalent to these three commands:
+<br><br>
+<span class="mcode">pltt(x1,y1,'new1');</span><br>
+<span class="mcode">pltt(x2,y2,'new2');</span><br>
+<span class="mcode">pltt(x3,y3,'new3');</span><br>
+<br>
+
+</body>
+</html>

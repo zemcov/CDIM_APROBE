@@ -1,0 +1,287 @@
+<html>
+<head>
+<title>Labels and figure properties properties</title>
+<style>
+<!--
+span.mcode
+{ color: #ff0000;
+  font-family: 'Lucida Console', 'Andale Mono', 'Courier New', monospace;
+}
+h3 { color: #009988 }
+-->
+</style>
+</head>
+<body>
+
+<img src="../images/plt.png" width="300" height="160" align="right"></td>
+<br><h1>Labels and figure properties</h1> <br clear="left"><br><br><br><br>
+
+<table cellpadding="8" cellspacing="0" width="100%">
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>Title</h3>
+      </td></tr></table>
+    </td>
+    <td> <span class="mcode">plt(...,'Title',t);</span><br>
+    Inserts the title string <span class="mcode">t</span> above the plot area.<br>
+    <span class="mcode">t</span> may be a cell array to specify a multi-line title.<br><br>
+    The Tex interpreter is used to render the string allowing entry of Greek and other special 
+    characters. If you don't want the Tex interpreter to be used, include the 
+    string <span class="mcode">[TexOff]</span> anywhere in the first line of the title.
+    (The [TexOff] string will be deleted from the title before display). Alternatively you 
+    could disable the Tex interpreter after the call to plt using the command:<br><br>
+    <span class="mcode">set(get(gca,'title'),'interpreter','none');</span><br><br>
+    A set command similar to the one above may be used to change the fontsize or other
+    title properties. The plot height is automatically shrunk by the amount needed to make
+    room for the title assuming the default font size. If you increase the title font size
+    you may need to adjust the plot size using the <span class="mcode">xy</span> parameter
+    described in the <nobr><a href="Axis%20properties.htm">Axis properties</a> section.</nobr><br><br>
+    If <span class="mcode">t</span> is a number is will be converted to a string.<br>
+    For example <span class="mcode">plt(...,'Title',{123 7.88})</span><br>
+    will create a two line title with '123' as the first line and '7.88' as the second line.
+    <br><br>
+    <i>Default:</i> no title
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>LabelX</h3>
+      </td></tr></table>
+    </td>
+    </td>
+    <td><span class="mcode">plt(...,'LabelX',s);<br>
+    </span>Uses string <span class="mcode">s</span> as the x-axis label. If you 
+    are using subplots with two columns, you may also specify the x-axis label 
+    for both the left and right columns of plots by using a cell array:
+    <nobr><span class="mcode">plt(...,'LabelX',{'left&nbsp;x&nbsp;label'&nbsp;'right&nbsp;x&nbsp;label');</span></nobr>
+    <br><br>
+    <i>Default:</i> <span class="mcode">'x axis'</span>
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>LabelY</h3>
+      </td></tr></table>
+    </td>
+    <td><span class="mcode">plt(...,'LabelY',s);<br>
+    </span>Uses string <span class="mcode">s</span> as the  left hand y-axis label 
+    of the main plot. 
+    You can specify both the left and right labels by using a cell array. For 
+    example, if there are no subplots, <span class="mcode">'LabelY',{'ab' 'cd'}</span> 
+    is equivalent to <span class="mcode">'LabelY','ab','LabelYR','cd'</span>. If 
+    there are subplots, the right hand axis label must come last. For example 
+    with 3 subplots:<br>
+    <span class="mcode">plt(...,'SubPlot',[50 20 30],'LabelY',...<br>
+    &nbsp;&nbsp; {'lower-axis' 'middle-axis' <nobr>'upper-axis'</nobr> <nobr>'right-hand-axis'</nobr>});</span>
+    <br><br>
+    <i>Default:</i> <span class="mcode">'Y axis (Left)'
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>LabelYR</h3> 
+      </td></tr></table>
+    </td>
+    <td> <span class="mcode">plt(...,'LabelYR',s);<br>
+    </span>Uses string <span class="mcode">s</span> as the  right hand y-axis label. The <span class="mcode">
+    'right'</span> parameter should also be included in this case, however if 
+    you don't, plt will default to placing the last trace on 
+    the right hand axis. Note that using a cell array argument to the <span class="mcode">
+    'LabelY'</span> parameter (described above) is usually a more convenient way 
+    to specify the y-axis label, and the <span class="mcode">'LabelYR'</span> 
+    parameter is primarily used in legacy code.
+    <br><br>
+    <i>Default:</i> <span class="mcode">'Y axis (Right)'
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>FigName&nbsp;&nbsp; </h3> 
+      </td></tr></table>
+    </td>
+    <td> <span class="mcode">plt(...,'FigName',f);<br>
+    </span>Uses string  <span class="mcode">f</span> as the name for the plt figure window.
+    <br><br>
+    <i>Default:</i> <span class="mcode">'plt'
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>Position<br>Pos</h3> 
+      </td></tr></table>
+    </td>
+    <td> <span class="mcode"><nobr>plt(...,'Position',[xLeft yBottom height width]);</nobr><br>
+                             <nobr>plt(...,'Position',[height width]);</nobr><br></span>
+    Specifies the figure size and position on the screen in pixels.<br><br>
+    Since 9 and 55 are the default values for xLeft & yBottom respectively, the second
+    form above (with xLeft and yBottom omitted) is equivalent to:
+    <span class="mcode"><nobr>plt(...,'Position',[9 55 height width])</nobr></span>
+    <br><br>
+    If you prefer conciseness, you may use <span class="mcode">'Pos'</span> as
+    an abbreviation for <span class="mcode">'Position'</span>.
+    <br><br>
+    If the height is specified as zero, plt will choose a height so that a unit along the 
+    x-axis is the same as a unit along the y-axis (i.e.if you plot a circle, it 
+    would look like a circle and not an ellipse). If the width is specified as 
+    zero, plt chooses the width to meet the same condition. (You can't 
+    specify zero for both the height and the width). If you resize the figure 
+    window with the mouse, then the units along the x and y axes will no longer 
+    be equal (and a plotted circle may appear to be an ellipse). If you wish 
+    that the equal units property to be maintained even after the figure window 
+    is resized, you should follow the plt command with the command <span class="mcode">
+    axis('equal')</span>.
+    <br><br>
+    If you specify the same position vector for more than 
+    one plt command, plt will add a small offset to all the figure window 
+    positions (except the first one) so that no two figures are exactly 
+    on top of each other. This feature makes it less likely that you will
+    completely loose sight of one of the figures and also makes it much
+    easier to select or move any figure with the mouse. If a second plt
+    command specifies a position that differs from the first plt command
+    by even one pixel, then this feature will not be engaged.
+    <br><br>
+    <i>Default:</i> <span class="mcode">[9 55 700 525]</span> (if sublots are not used).
+    With subplots, as you add more columns of axes the default width increases from
+    700 to a maximum of 980. As you add more axes to a column the default height
+    increases slightly from 525 to a maximum of 600.
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>HelpText</h3> 
+      </td></tr></table>
+    </td>
+    <td> <span class="mcode"><nobr>plt(...,'HelpText',v);</nobr><br></span>
+    This parameter creates a HelpText pseudo object at the same time as
+    the plt pseudo is being created. <span class="mcode">v</span> is a string
+    or cell array specifying the displayed text. See the
+    <nobr><a href="../Programming%20with%20plt/Pseudo%20objects.htm">Pseudo&nbsp;objects</a></nobr>
+    section for a description of the format of the <span class="mcode">v</span> argument.
+    Also look at the following demo programs which use the HelpText parameter:
+    curves, editz, gauss, pltquiv, subplt, tasplt, trigplt, and wfalltst.
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>Link</h3> 
+      </td></tr></table>
+    </td>
+    <td> This parameter is used to force a group of plt figures to close when any member
+    of the group is closed. Consider the following sequence:<br><br>
+    <span class="mcode">plt(x1,y1);</span><br>
+    <span class="mcode">g = gcf;</span><br>
+    <span class="mcode">plt(x2,y2,'Link',g);</span><br>
+    <span class="mcode">plt(x3,y3,'Link',g);</span><br><br>
+    This of course will create 3 plotting figures.
+    Closing any one of the three figures will also cause the other two to close.
+    <br><br>
+    The link parameter is ignored if it is empty. This makes it easier to link figures created
+    in a loop. For example, this loop creates five linked figures:
+    <br><br>
+    <span class="mcode">g = '';</span><br>
+    <span class="mcode">for k=1:5</span><br>
+    <span class="mcode">&nbsp; plt(x{k},y{k},'Link',g);</span><br>
+    <span class="mcode">&nbsp; if isempty(g) g=gcf; end;</span><br>
+    <span class="mcode">end;</span><br><br>
+    The demo programs
+    <span class="mcode">editz</span>,
+    <span class="mcode">tasplt</span>,
+    <span class="mcode">pub</span>, and
+    <span class="mcode">pub2</span> take advantage of this parameter.
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>CloseReq</h3> 
+      </td></tr></table>
+    </td>
+    <td> This parameter specifies a function that will be run when the plt window is
+    closed. The argument may be:
+    <ul><li>a string (as shown in the <span class="mcode">plt50.m</span> example).
+        <li>a function handle (as shown in the <span class="mcode">gui2.m</span> example).
+        <li>a cell array containing a function handle and its arguments
+            (as shown in the <span class="mcode">wfall.m</span> example).
+    </ul>
+    Note that if the function is defined as a string argument often consecutive single
+    quote characters are required (quotes within quotes). In that case readability
+    can be improved by replacing all sequences of two consecutive single quotes with
+    a double quote character. For example <span class="mcode">'disp(''ABC'');'</span>
+    could be written as <span class="mcode">'disp("ABC");'</span>. Note that this
+    trick does not work for Matlab callbacks in general, but it does work for any
+    callback defined within a <span class="mcode">plt(...)</span> function call.
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+  <tr>
+    <td valign="top">
+      <table border="3" bordercolor="#cfcfcf" cellspacing="0" cellpadding="4"><tr><td width="200">
+      <h3>Fig</h3> 
+      </td></tr></table>
+    </td>
+    <td> Normally plt opens a new figure window when it 
+    is called. In some situations you may want to tell plt to use a pre-existing 
+    figure instead. (The most common reason this is done is to put more than one
+    plot into a single figure.) This parameter tells plt to do this and specifies which figure
+    window should be used. For example, to open plt using figure 
+    number 4, you would use <span class="mcode">plt('Fig',4,...);</span>.
+    More often you will probably use <span class="mcode">plt('Fig',gcf,...);</span>
+    which will open plt in the current figure. Generally the plt parameters may be placed
+    anywhere in the parameter list, and in fact the Fig parameter is the only exception to
+    this. The Fig parameter must be placed either as the first or the last parameter in
+    the argument list. The Fig parameter is ignored otherwise. This restriction is due to
+    lazy programming more than any other reason, and the restriction might be removed in
+    a later release.
+    <br><br>
+    There are two example programs (<span class="mcode">plt50.m</span> and
+    <span class="mcode">pub3.m</span>) which are described in the
+    <nobr><a href="../Programming%20with%20plt/Programming%20examples.htm">Programming&nbsp;examples</a> section</nobr>
+    that demonstrate the use of the Fig parameter to put multiple plots in a single figure.
+    The first one (plt50) is oriented towards data exploration and takes advantage of the
+    full generality of plt's cursoring system for both plots. The second one (pub3) is oriented
+    towards creating a figure for publication and so the cursors have been disabled to create
+    a clutter free result.
+    <br><br>
+    There is also another method to create multiple plots in a single figure, and this
+    makes use of the subplot parameter. (This is demonstrated by the
+    <span class="mcode">subplt.m</span>,
+    <span class="mcode">subplt8.m</span>,
+    <span class="mcode">subplt16.m</span>,
+    <span class="mcode">subplt20.m</span>,
+    <span class="mcode">pub.m</span>,
+    <span class="mcode">pub2.m</span>,
+    <span class="mcode">pltmap.m</span>, and
+    <span class="mcode">weight.m</span> programming examples).
+    You might not expect that there would be a need for two different methods for achieving the same
+    end, but it turns out that each of these methods have their unique advantages. The subplot
+    method is sometimes simpler because all the plots are created with a single call to plt.
+    The subplot method imposes significant restrictions on the plots, but in turn this allows the
+    cursor controls to be more compact which makes cursoring possible on a figure with many more
+    plots than would be possible with the Fig method. The subplot method also provides an option for
+    linking the cursors of the plots in a single column. Most of the programming examples with multiple
+    plots per figure would have been difficult to impossible without the correct choice between
+    the subplot and Fig parameter methods.
+    </td>
+  </tr>
+  <tr><td colspan="100%"><hr></td></tr>
+</table>
+
+</body>
+
+</html>
