@@ -16,12 +16,14 @@ import numpy  as np
 import pylab as pl
 import matplotlib.pyplot as plt
 from scipy import constants as cst
+from matplotlib.ticker import FormatStrFormatter
 
-verbose = 1 # control verbosity
+verbose = 2 # control verbosity
 
 if verbose == 2:
     fig=plt.figure(figsize=(6.5,5))
     ax = fig.add_subplot(1,1,1)
+    tmpl = [0.8,1.,1.2,1.5,2.,2.5,3.,4.,5.,6.,7.5]
 
 ## Physical cst
 c0 = cst.value('speed of light in vacuum')*1.e6 #um/s
@@ -31,7 +33,7 @@ hc = c0*h0 # um.J
 
 Apert = 1.0 # Aperture in m
 fnum  = 3.74/Apert # fnumber
-R     = 500 # lambda / delta lambda spectral resolution
+R     = 1000 # lambda / delta lambda spectral resolution
 lmax  = 7.5 # maximum wavelength, microns
 lmin  = 0.75 # minumin wavelength, microns
 Area_dp = 300 # deep survey area, sq deg
@@ -118,7 +120,10 @@ if verbose == 2:
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'Optical Efficiency')
     ax.set_xlim([0.75,7.5])
-
+    
+    ax.xaxis.set_ticks(tmpl)
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+    
     plt.legend(loc=4)
     plt.tight_layout()
     plt.savefig('cdim_sbsens_eta.pdf')
@@ -203,6 +208,9 @@ if verbose == 2:
     ax.set_xlim([0.5,7.5])
     ax.set_ylim([1e-3,5e1])
 
+    ax.xaxis.set_ticks(tmpl)
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+    
     plt.legend(loc=1,fontsize=12)
     plt.tight_layout()
     plt.savefig('cdim_sbsens_iphoto.pdf')
@@ -227,6 +235,9 @@ if verbose == 2:
     ax.set_xlim([0.75,7.5])
     ax.set_ylim([1e0,1e4])
 
+    ax.xaxis.set_ticks(tmpl)
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+    
     plt.legend(loc=3,fontsize=12)
     plt.tight_layout()
     plt.savefig('cdim_sbsens_dnIn.pdf')
@@ -244,6 +255,9 @@ if verbose == 2:
     ax.set_xlim([0.75,7.5])
     ax.set_ylim([0,3.1])
 
+    ax.xaxis.set_ticks(tmpl)
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+    
     plt.tight_layout()
     plt.savefig('cdim_sbsens_ratio.pdf')
 
@@ -254,6 +268,8 @@ dF = 1.e-9*1.e26*1.e6*((np.pi/180.)*(th_pix/3600.))**2*dnIn_ppix*(lam/c0) # uJy
 Nsig   = 1
 # convert to Mab
 Mab = -2.5*np.log10(Nsig*1.e-6*dF/3631.)
+# convert to line flux
+Sline = 1e18*Nsig * 3e-14 * dF / R / (lam * 1e4) * 1e7 * 1e-4
 
 if verbose == 2:
     plt.clf()
@@ -266,6 +282,9 @@ if verbose == 2:
     ax.set_xlim([0.5,7.5])
     ax.set_ylim([0.5,50])
 
+    ax.xaxis.set_ticks(tmpl)
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+    
     plt.tight_layout()
     plt.savefig('cdim_sbsens_dF.pdf')
 
@@ -280,18 +299,39 @@ if verbose == 2:
     ax.set_xlim([0.75,7.5])
     ax.set_ylim([20,25])
 
+    ax.xaxis.set_ticks(tmpl)
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+    
     plt.tight_layout()
     plt.savefig('cdim_sbsens_Mab.pdf')
 
 if verbose == 2:
+    plt.clf()
+
+    ax = fig.add_subplot(1,1,1)
+
+    ax.semilogx(lam,Sline,linestyle='-',marker='')
+    ax.set_xlabel(r'$\lambda$ ($\mu$m)')
+    ax.set_ylabel(r'Line Sensitivity (1$\times 10^{-18}$ erg s$^{-1}$ cm$^{-2}$, 1$\sigma$)')
+    ax.set_xlim([0.75,7.5])
+    ax.set_ylim([0,20])
+
+    ax.xaxis.set_ticks(tmpl)
+    ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+    
+    plt.tight_layout()
+    plt.savefig('cdim_sbsens_Sline.pdf')
+    
+if verbose == 2:
     plt.close()
 
 # save the result of our labors
-dout = np.zeros(lam.size,dtype=[('var1',float),('var2',float),('var3',float)])
+dout = np.zeros(lam.size,dtype=[('var1',float),('var2',float),('var3',float),('var4',float)])
 dout['var1'] = lam
 dout['var2'] = dF
 dout['var3'] = Mab
+dout['var4'] = Sline
 
-np.savetxt('cdim_sbsens_out.txt',dout,fmt='%f, %f, %f')
+np.savetxt('cdim_sbsens_out.txt',dout,fmt='%f, %f, %f, %f')
 
 ### return
