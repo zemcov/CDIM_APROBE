@@ -33,7 +33,7 @@ hc = c0*h0 # um.J
 
 Apert = 1.0 # Aperture in m
 fnum  = 3.74/Apert # fnumber
-R     = 1000 # lambda / delta lambda spectral resolution
+R     = 500 # lambda / delta lambda spectral resolution
 lmax  = 7.5 # maximum wavelength, microns
 lmin  = 0.75 # minumin wavelength, microns
 Area_dp = 300 # deep survey area, sq deg
@@ -51,9 +51,8 @@ T_scope = 120. # telescope temperature, K
 n_optics = 5 # number of optics in optical chain
 eta_lvf = 0.80 # optical efficiency of lvf
 
-pixelfac = 10.67  # the number of pixels that measure a single resolution
+pixelfac = 5335.67/R  # the number of pixels that measure a single resolution
                   # element of width R
-                  # 9.073 gets us to 7.5 pretty exactly.
 nativeR = pixelfac*R # native resolution per pixel column 
 pix_format = np.array([2048,2048]) # array format
 fp_format = np.array([6,6]) # number and layout of detectors
@@ -83,7 +82,7 @@ lam[0] = lmin
 # pre-computed wavelength jump
 for ipix in range(1,fp_pix[0]):
     lam[ipix] = lam[ipix-1] * (1. + 1./nativeR)
-
+    
 # read in optical efficiency of mirrors
 text_file = open('lookup/eta_au.txt')
 rows = [[float(x) for x in line.split(',')[:]] for line in text_file]
@@ -126,7 +125,7 @@ if verbose == 2:
     
     plt.legend(loc=4)
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_eta.pdf')
+    plt.savefig('cdim_sbsens_eta_R'+str(R)+'.pdf')
 
 # compute entendue of a detector
 AOmega     = 0.25*np.pi*(Apert**2)*(((th_pix/3600)*np.pi/180.)**2) #m^2/sr
@@ -213,7 +212,7 @@ if verbose == 2:
     
     plt.legend(loc=1,fontsize=12)
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_iphoto.pdf')
+    plt.savefig('cdim_sbsens_iphoto_R'+str(R)+'.pdf')
 
 # rms noise on the detector per integration
 dnIn_ppix = np.sqrt(i_tot*t_int+dQ_rin**2)/t_int/i_sky*sky_bkg
@@ -240,7 +239,7 @@ if verbose == 2:
     
     plt.legend(loc=3,fontsize=12)
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_dnIn.pdf')
+    plt.savefig('cdim_sbsens_dnIn_R'+str(R)+'.pdf')
 
 if verbose == 2:
     plt.clf()
@@ -259,7 +258,7 @@ if verbose == 2:
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_ratio.pdf')
+    plt.savefig('cdim_sbsens_ratio_R'+str(R)+'.pdf')
 
 # compute flux uncertainty in uJy
 dF = 1.e-9*1.e26*1.e6*((np.pi/180.)*(th_pix/3600.))**2*dnIn_ppix*(lam/c0) # uJy
@@ -286,7 +285,7 @@ if verbose == 2:
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_dF.pdf')
+    plt.savefig('cdim_sbsens_dF_R'+str(R)+'.pdf')
 
 if verbose == 2:
     plt.clf()
@@ -303,7 +302,7 @@ if verbose == 2:
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_Mab.pdf')
+    plt.savefig('cdim_sbsens_Mab_R'+str(R)+'.pdf')
 
 if verbose == 2:
     plt.clf()
@@ -320,7 +319,7 @@ if verbose == 2:
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_Sline.pdf')
+    plt.savefig('cdim_sbsens_Sline_R'+str(R)+'.pdf')
     
 if verbose == 2:
     plt.close()
@@ -332,6 +331,6 @@ dout['var2'] = dF
 dout['var3'] = Mab
 dout['var4'] = Sline
 
-np.savetxt('cdim_sbsens_out.txt',dout,fmt='%f, %f, %f, %f')
+np.savetxt('cdim_sbsens_out_R'+str(R)+'.txt',dout,fmt='%f, %f, %f, %f')
 
 ### return
