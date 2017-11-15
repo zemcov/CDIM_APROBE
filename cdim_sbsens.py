@@ -50,6 +50,8 @@ T_det = 35. # detector temperature, K
 T_scope = 120. # telescope temperature, K
 n_optics = 5 # number of optics in optical chain
 eta_lvf = 0.80 # optical efficiency of lvf
+blocking = 1e-5 # out of band blocking
+OD = - np.log10(blocking)
 
 pixelfac = 5335.67/R  # the number of pixels that measure a single resolution
                   # element of width R
@@ -60,12 +62,12 @@ fp_format = np.array([6,6]) # number and layout of detectors
 # angle subtended by a single detector
 th_pix   = 3600.*180./np.pi*(Pitch*1.e-6)/(Apert*fnum)
 if verbose:
-    print th_pix
+    print "Pixel angle is: " + str(th_pix) + " arcsec."
 
 # number of pixels in the entire array
 fp_pix = pix_format * fp_format
 if verbose:
-    print fp_format[0]
+    print "Focal plane is: " + str(fp_format[0]) + " detectors wide."
 
 # this hard codes the type of detector (H2RG_NN) in each element of the array 
 fp_det_type = np.zeros(fp_pix[0])
@@ -107,6 +109,9 @@ eta_fpa = np.interp(lam,eta_fpa_l,eta_fpa_e)
 
 # efficiency assumes 
 eta_opt = eta_au**n_optics
+
+# build filter function
+#filt_lvf = blocking * np.ones(fp_pix[0])
 eta_lvf = eta_lvf * np.ones(fp_pix[0])
 eta_tot = eta_opt * eta_fpa * eta_lvf
 
@@ -130,7 +135,7 @@ if verbose == 2:
 # compute entendue of a detector
 AOmega     = 0.25*np.pi*(Apert**2)*(((th_pix/3600)*np.pi/180.)**2) #m^2/sr
 if verbose:
-    print AOmega
+    print "Entendue is: " + str(AOmega) + " m^2 sr."
 
 # generate an array of appropriate read noise
 dQ_lam = np.zeros(fp_pix[0])
@@ -142,7 +147,8 @@ dQ_lam[np.where(fp_det_type == 4)] = dQ[3]
 # convert to read noise appropriate to sample up the ramp
 dQ_rin  = dQ_lam*np.sqrt(6.*T_samp/t_int)
 if verbose:
-    print dQ_rin
+    whsmpl = (np.abs((lam - 1.0)) == np.min(np.abs(lam - 1.0)))
+    print "Read noise at 1.0 microns is: " + str(dQ_rin[whsmpl]) + " e-/read."
 
 # compute the sky background assuming two black bodies consistent
 # with reflected solar and thermal ZL 
@@ -151,7 +157,8 @@ sky_bkg = 6.7e3/lam**4/(np.exp(hc/(kb*5500.*lam))-1.) \
 # include the "above minimum" factor
 sky_bkg    *= ZL_fac
 if verbose:
-    print sky_bkg
+    print "Sky background at 1.0 microns is: " + str(sky_bkg[whsmpl]) + \
+        " nW/m^2/sr."
 
 # compute the bakcground from the telescope
 tele_bkg = 2. * hc * c0 * 1e-12 / ((1e-6*lam)**4*(np.exp(hc/(kb*T_scope*lam)) - 1)) * (1.-eta_au) * lam * 1e-6 * 1e9
@@ -161,6 +168,47 @@ if verbose:
 # Compute the photocurrent from these contributions
 i_sky  = 1.e-9*sky_bkg*AOmega*eta_tot/(R*hc/lam) # e-/s
 i_tele = 1.e-9*tele_bkg*np.pi*1.8e-5**2/(R*hc/lam) # e-/s
+# bug here: formally, I should be including out of band photocurrent
+# in this calculation.
+
+if blocking > 0:
+    print "Computing blocking..."
+    i_pass = np.zeros(fp_pix[0])
+    i_block = np.zeros(fp_pix[0])
+    for ipix in range(1,fp_pix[0]):
+        filt = np.exp(-(lam - lam[ipix])**2 / \
+                      ((lam[ipix] / R)**2 / (4. * np.log(2))))
+        filt = filt / np.sum(filt) * eta_lvf
+        eta_filt = eta_opt * eta_fpa * filt
+    
+        i_pass[ipix] = 1e-9 * AOmega / hc * \
+                       (np.sum(sky_bkg*eta_filt*(lam/R)) + \
+                        1.8e-5**2 * np.sum(tele_bkg*eta_filt*(lam/R)))
+        i_block[ipix] = 1e-9 * AOmega / hc * \
+                        (np.sum(sky_bkg*blocking*(lam/R)) + \
+                        1.8e-5**2 * np.sum(tele_bkg*blocking*(lam/R)))
+
+    blockingratio = i_pass/i_block
+    blockingratio[0] = blockingratio[1]
+    
+    if verbose == 2:
+
+        plt.clf()
+        ax = fig.add_subplot(1,1,1)
+
+        ax.loglog(lam,blockingratio)
+        ax.loglog(lam,0*lam+1,linestyle='--',color='black')
+
+        ax.set_xlabel(r'$\lambda$ ($\mu$m)')
+        ax.set_ylabel(r'Ratio of In-band i to Out of Band i at OD' + \
+                      str(OD))
+        ax.set_xlim([0.75,7.5])
+        ax.set_ylim([0.1 * np.min(blockingratio),10*np.max(blockingratio)])
+        ax.xaxis.set_ticks(tmpl)
+        ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+    
+        plt.tight_layout()
+        plt.savefig('cdim_sbsens_blocking_R'+str(R)+'.pdf')
 
 # compute the total photocurrent
 i_photo = i_sky + i_tele
