@@ -31,9 +31,9 @@ h0 = cst.value('Planck constant') # J.s
 kb = cst.value('Boltzmann constant') # J/K
 hc = c0*h0 # um.J
 
-Apert = 1.0 # Aperture in m
-fnum  = 3.74/Apert # fnumber
-R     = 500 # lambda / delta lambda spectral resolution
+Apert = 0.83 # Aperture in m
+fnum  = 4.5 # fnumber
+R     = 300 # lambda / delta lambda spectral resolution
 lmax  = 7.5 # maximum wavelength, microns
 lmin  = 0.75 # minumin wavelength, microns
 Area_dp = 300 # deep survey area, sq deg
@@ -45,19 +45,22 @@ ZL_fac = 1.5 # multiplicative factor describing mean Zodiacal Light
              # brightness above the NEP minimum  
 dQ = [10,10.5,10.5,21./np.sqrt(2)] # read noise, single sample, e-
 T_samp = 1.5 # sample time, s
-t_int = 200. # integration time, s
+t_int = 250. # integration time, s
 T_det = 35. # detector temperature, K
-T_scope = 120. # telescope temperature, K
+T_scope = 70. # telescope temperature, K
 n_optics = 5 # number of optics in optical chain
 eta_lvf = 0.80 # optical efficiency of lvf
-blocking = 1e-5 # out of band blocking
-OD = - np.log10(blocking)
+blocking = 0. #1e-5 # out of band blocking
+if blocking == 0:
+    OD=0.
+else:
+    OD = - np.log10(blocking)
 
 pixelfac = 5335.67/R  # the number of pixels that measure a single resolution
                   # element of width R
 nativeR = pixelfac*R # native resolution per pixel column 
 pix_format = np.array([2048,2048]) # array format
-fp_format = np.array([6,6]) # number and layout of detectors
+fp_format = np.array([6,4]) # number and layout of detectors
 
 # angle subtended by a single detector
 th_pix   = 3600.*180./np.pi*(Pitch*1.e-6)/(Apert*fnum)
@@ -161,13 +164,14 @@ if verbose:
         " nW/m^2/sr."
 
 # compute the bakcground from the telescope
-tele_bkg = 2. * hc * c0 * 1e-12 / ((1e-6*lam)**4*(np.exp(hc/(kb*T_scope*lam)) - 1)) * (1.-eta_au) * lam * 1e-6 * 1e9
+tele_bkg = 2. * hc * c0 * 1e-12 / ((1e-6*lam)**4*(np.exp(hc/(kb*T_scope*lam)) - 1)) * (1.-eta_au) * 1e9 # in nW/m^2/sr
 if verbose:
-    print tele_bkg
+    print "Telescope background at 1.0 microns is: " + str(tele_bkg[whsmpl]) + \
+        " nW/m^2/sr."
 
 # Compute the photocurrent from these contributions
 i_sky  = 1.e-9*sky_bkg*AOmega*eta_tot/(R*hc/lam) # e-/s
-i_tele = 1.e-9*tele_bkg*np.pi*1.8e-5**2/(R*hc/lam) # e-/s
+i_tele = 1.e-9*tele_bkg*np.pi*(Pitch*1e-6)**2/(R*hc/lam) # e-/s
 # bug here: formally, I should be including out of band photocurrent
 # in this calculation.
 
@@ -213,7 +217,8 @@ if blocking > 0:
 # compute the total photocurrent
 i_photo = i_sky + i_tele
 if verbose:
-    print i_photo
+    print "Photocurrent at 1.0 microns is: " + str(i_photo[whsmpl]) + \
+        " e-/s."
 
 if verbose == 2:
     plt.clf()
@@ -223,9 +228,9 @@ if verbose == 2:
     ax.loglog(lam,i_photo,linestyle='-',marker='',\
               label=r'Total $i_{\rm photo}$')
     ax.loglog(lam,i_sky,linestyle='-.',marker='',\
-              label=r'$i_{\rm photo}$ from sky in $T_{\rm int}=200$s')
+              label=r'$i_{\rm photo}$ from sky in $T_{\rm int}=250$s')
     ax.loglog(lam,i_tele,linestyle='-',marker='',\
-              label=r'$i_{\rm photo}$ from telescope at T=120K')
+              label=r'$i_{\rm photo}$ from telescope at T=70K')
 
 # compute dark current - these come from empirical measurements
 # taken from the literature
@@ -258,7 +263,7 @@ if verbose == 2:
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
-    plt.legend(loc=1,fontsize=12)
+    plt.legend(loc=2,fontsize=12)
     plt.tight_layout()
     plt.savefig('cdim_sbsens_iphoto_R'+str(R)+'.pdf')
 
@@ -278,7 +283,7 @@ if verbose == 2:
     ax.loglog(lam,dnIn_ppix,linestyle='-',marker='',label='Total')
 
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
-    ax.set_ylabel(r'$\delta \nu I_{\nu}$ / pixel / 200s (nW m$^{-2}$ sr$^{-1}$, $1 \sigma$)')
+    ax.set_ylabel(r'$\delta \nu I_{\nu}$ / pixel / 250s (nW m$^{-2}$ sr$^{-1}$, $1 \sigma$)')
     ax.set_xlim([0.75,7.5])
     ax.set_ylim([1e0,1e4])
 
