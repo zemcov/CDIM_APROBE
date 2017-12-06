@@ -36,10 +36,10 @@ countcolors = plt.cm.rainbow(np.linspace(0, 1, len(countlambda)))
 
 abzero = 3631
 
-Apert = 1.0 # Aperture in m
+Apert = 0.83 # Aperture in m
 lmax  = 7.5 # maximum wavelength, microns
 lmin  = 0.75 # minimum wavelength, microns
-fnum  = 3.74/Apert # fnumber
+fnum  = 4.5 # fnumber
 Pitch = 18. # detector pixel pitch, um
 n_width = 2.5; # number of FWHM to cut out for each masked source
 
