@@ -36,10 +36,13 @@ fnum  = 4.5 # fnumber
 R     = 300 # lambda / delta lambda spectral resolution
 lmax  = 7.5 # maximum wavelength, microns
 lmin  = 0.75 # minumin wavelength, microns
-Area_dp = 300 # deep survey area, sq deg
+Area_dp = 31 # deep survey area, sq deg
+Area_sh = 311 # shallow survey area, sq deg
 Tmission = 2. # mission length, years
 obs_eff = 0.8 # observation efficiency (that is, fraction of time
               # spent surveying)
+t_dp = 104 # minutes per band per resolution element, deep survey
+t_sh = 14.2 # minutes per band per resolution element, shallow survey
 Pitch = 18. # detector pixel pitch, um
 ZL_fac = 1.5 # multiplicative factor describing mean Zodiacal Light
              # brightness above the NEP minimum  
@@ -316,10 +319,15 @@ if verbose == 2:
 # compute flux uncertainty in uJy
 dF = 1.e-9*1.e26*1.e6*((np.pi/180.)*(th_pix/3600.))**2*dnIn_ppix*(lam/c0) # uJy
 
+dF_single = dF
+n_reps = 1./20.
+dF = dF * np.sqrt(n_reps) #t_int / (obs_eff * 60) / t_dp) 
+
 # assume some number of sigma
 Nsig   = 1
 # convert to Mab
 Mab = -2.5*np.log10(Nsig*1.e-6*dF/3631.)
+Mab_single = -2.5*np.log10(Nsig*1e-6*dF_single/3631.)
 # convert to line flux
 Sline = 1e18*Nsig * 3e-14 * dF / R / (lam * 1e4) * 1e7 * 1e-4
 
@@ -345,14 +353,17 @@ if verbose == 2:
 
     ax = fig.add_subplot(1,1,1)
 
-    ax.semilogx(lam,Mab,linestyle='-',marker='')
+    ax.semilogx(lam,Mab,linestyle='-',marker='',label="Deep-1 Survey")
+    ax.semilogx(lam,Mab_single,linestyle='-',marker='',label="Single Integration")
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'$M_{\rm AB}$ (1$\sigma$)')
     ax.set_xlim([0.75,7.5])
-    ax.set_ylim([20,25])
+    ax.set_ylim([20,28])
 
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+
+    ax.legend()
     
     plt.tight_layout()
     plt.savefig('cdim_sbsens_Mab_R'+str(R)+'.pdf')
