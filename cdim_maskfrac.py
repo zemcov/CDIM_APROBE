@@ -87,6 +87,7 @@ for counter, lam in enumerate(cut_area):
 
 if verbose == 2:
     ax.plot(cdim_lambda,diffraction_limit,linestyle='-',label='Diffraction Limit, FWHM')
+    ax.plot(cdim_lambda,np.sqrt(diffraction_limit**2 + 0.25**2),linestyle='-',label='Diffraction + Pointing Smear')
     ax.plot(cdim_lambda,np.repeat(th_pix,np.size(cdim_lambda)),linestyle='-',label='Pixel Size')
     ax.plot(cdim_lambda,cut_width,linestyle='-',label='Cut Function')
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')

@@ -53,7 +53,7 @@ T_det = 35. # detector temperature, K
 T_scope = 70. # telescope temperature, K
 n_optics = 5 # number of optics in optical chain
 eta_lvf = 0.80 # optical efficiency of lvf
-blocking = 0. #1e-5 # out of band blocking
+blocking = 1.995e-5 #1e-5 # out of band blocking
 if blocking == 0:
     OD=0.
 else:
@@ -81,6 +81,11 @@ fp_det_type[0:2048] = 1
 fp_det_type[2048:3*2048] = 2
 fp_det_type[3*2048:5*2048] = 3
 fp_det_type[5*2048:6*2048] = 4
+fp_cut_off = np.zeros(fp_pix[0])
+fp_cut_off[0:2048] = 1.75
+fp_cut_off[2048:3*2048] = 2.5
+fp_cut_off[3*2048:5*2048] = 5.2
+fp_cut_off[5*2048:6*2048] = 8.0         
 
 # set up the beginning wavelength
 lam = np.zeros(fp_pix[0])
@@ -178,6 +183,8 @@ i_tele = 1.e-9*tele_bkg*np.pi*(Pitch*1e-6)**2/(R*hc/lam) # e-/s
 # bug here: formally, I should be including out of band photocurrent
 # in this calculation.
 
+i_block = 0.* i_tele
+i_pass = i_sky + i_tele
 if blocking > 0:
     print "Computing blocking..."
     i_pass = np.zeros(fp_pix[0])
@@ -187,14 +194,17 @@ if blocking > 0:
                       ((lam[ipix] / R)**2 / (4. * np.log(2))))
         filt = filt / np.sum(filt) * eta_lvf
         eta_filt = eta_opt * eta_fpa * filt
-    
-        i_pass[ipix] = 1e-9 * AOmega / hc * \
-                       (np.sum(sky_bkg*eta_filt*(lam/R)) + \
-                        1.8e-5**2 * np.sum(tele_bkg*eta_filt*(lam/R)))
-        i_block[ipix] = 1e-9 * AOmega / hc * \
-                        (np.sum(sky_bkg*blocking*(lam/R)) + \
-                        1.8e-5**2 * np.sum(tele_bkg*blocking*(lam/R)))
+        
+        tp = np.where(lam <= fp_cut_off[ipix])
 
+        sumone = np.sum(sky_bkg[tp]*eta_filt[tp]*(lam[tp]/R))
+        sumtwo = np.sum(tele_bkg[tp]*eta_filt[tp]*(lam[tp]/R))
+        sumthr = np.sum(sky_bkg[tp]*blocking*(lam[tp]/R))
+        sumfor = np.sum(tele_bkg[tp]*blocking*(lam[tp]/R))
+        
+        i_pass[ipix] = 1e-9 * AOmega / hc * (sumone + 1.8e-5**2 * sumtwo)
+        i_block[ipix] = 1e-9 * AOmega / hc * (sumthr + 1.8e-5**2 * sumfor) 
+        
     blockingratio = i_pass/i_block
     blockingratio[0] = blockingratio[1]
     
@@ -207,18 +217,18 @@ if blocking > 0:
         ax.loglog(lam,0*lam+1,linestyle='--',color='black')
 
         ax.set_xlabel(r'$\lambda$ ($\mu$m)')
-        ax.set_ylabel(r'Ratio of In-band i to Out of Band i at OD' + \
-                      str(OD))
+        ax.set_ylabel(r'Ratio of In-band i to Out of Band i at OD%1.1f' % OD)
         ax.set_xlim([0.75,7.5])
         ax.set_ylim([0.1 * np.min(blockingratio),10*np.max(blockingratio)])
         ax.xaxis.set_ticks(tmpl)
         ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
-    
+        ax.set_xticklabels(['','',''],minor=True)
+        
         plt.tight_layout()
         plt.savefig('cdim_sbsens_blocking_R'+str(R)+'.pdf')
 
 # compute the total photocurrent
-i_photo = i_sky + i_tele
+i_photo = i_pass + i_block
 if verbose:
     print "Photocurrent at 1.0 microns is: " + str(i_photo[whsmpl]) + \
         " e-/s."
@@ -234,6 +244,8 @@ if verbose == 2:
               label=r'$i_{\rm photo}$ from sky in $T_{\rm int}=250$s')
     ax.loglog(lam,i_tele,linestyle='-',marker='',\
               label=r'$i_{\rm photo}$ from telescope at T=70K')
+    ax.loglog(lam,i_block,linestyle='-',marker='',\
+              label=r'$i_{\rm photo}$ from filter leakage OD%1.1f' % OD)
 
 # compute dark current - these come from empirical measurements
 # taken from the literature
@@ -353,7 +365,7 @@ if verbose == 2:
 
     ax = fig.add_subplot(1,1,1)
 
-    ax.semilogx(lam,Mab,linestyle='-',marker='',label="Deep-1 Survey")
+    ax.semilogx(lam,Mab,linestyle='-',marker='',label="Deep Survey")
     ax.semilogx(lam,Mab_single,linestyle='-',marker='',label="Single Integration")
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'$M_{\rm AB}$ (1$\sigma$)')
