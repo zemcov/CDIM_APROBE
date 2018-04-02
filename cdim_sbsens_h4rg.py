@@ -43,12 +43,12 @@ obs_eff = 0.8 # observation efficiency (that is, fraction of time
               # spent surveying)
 t_dp = 104 # minutes per band per resolution element, deep survey
 t_sh = 14.2 # minutes per band per resolution element, shallow survey
-Pitch = 18. # detector pixel pitch, um
+Pitch = 10. # detector pixel pitch, um
 ZL_fac = 1.5 # multiplicative factor describing mean Zodiacal Light
              # brightness above the NEP minimum  
 dQ = [10,10.5,10.5,21./np.sqrt(2)] # read noise, single sample, e-
 T_samp = 1.5 # sample time, s
-t_int = 250. # integration time, s
+t_int = 500. # integration time, s
 T_det = 35. # detector temperature, K
 T_scope = 70. # telescope temperature, K
 n_optics = 5 # number of optics in optical chain
@@ -59,10 +59,10 @@ if blocking == 0:
 else:
     OD = - np.log10(blocking)
 
-pixelfac = 5335.67/R  # the number of pixels that measure a single resolution
+pixelfac = 10671.34/R  # the number of pixels that measure a single resolution
                   # element of width R
 nativeR = pixelfac*R # native resolution per pixel column 
-pix_format = np.array([2048,2048]) # array format
+pix_format = np.array([4096,4096]) # array format
 fp_format = np.array([6,4]) # number and layout of detectors
 
 # angle subtended by a single detector
@@ -77,15 +77,15 @@ if verbose:
 
 # this hard codes the type of detector (H2RG_NN) in each element of the array 
 fp_det_type = np.zeros(fp_pix[0])
-fp_det_type[0:2048] = 1
-fp_det_type[2048:3*2048] = 2
-fp_det_type[3*2048:5*2048] = 3
-fp_det_type[5*2048:6*2048] = 4
+fp_det_type[0:4096] = 1
+fp_det_type[4096:3*4096] = 2
+fp_det_type[3*4096:5*4096] = 3
+fp_det_type[5*4096:6*4096] = 4
 fp_cut_off = np.zeros(fp_pix[0])
-fp_cut_off[0:2048] = 1.75
-fp_cut_off[2048:3*2048] = 2.5
-fp_cut_off[3*2048:5*2048] = 5.2
-fp_cut_off[5*2048:6*2048] = 8.0         
+fp_cut_off[0:4096] = 1.75
+fp_cut_off[4096:3*4096] = 2.5
+fp_cut_off[3*4096:5*4096] = 5.2
+fp_cut_off[5*4096:6*4096] = 8.0         
 
 # set up the beginning wavelength
 lam = np.zeros(fp_pix[0])
@@ -225,7 +225,7 @@ if blocking > 0:
         ax.set_xticklabels(['','',''],minor=True)
         
         plt.tight_layout()
-        plt.savefig('cdim_sbsens_blocking_R'+str(R)+'.pdf')
+        plt.savefig('cdim_sbsens_blocking_R'+str(R)+'_h4rg.pdf')
 
 # compute the total photocurrent
 i_photo = i_pass + i_block
@@ -280,7 +280,7 @@ if verbose == 2:
     
     plt.legend(loc=2,fontsize=12)
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_iphoto_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_iphoto_R'+str(R)+'_h4rg.pdf')
 
 # rms noise on the detector per integration
 dnIn_ppix = np.sqrt(i_tot*t_int+dQ_rin**2)/t_int/i_sky*sky_bkg
@@ -307,7 +307,7 @@ if verbose == 2:
     
     plt.legend(loc=3,fontsize=12)
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_dnIn_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_dnIn_R'+str(R)+'_h4rg.pdf')
 
 if verbose == 2:
     plt.clf()
@@ -326,13 +326,13 @@ if verbose == 2:
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_ratio_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_ratio_R'+str(R)+'_h4rg.pdf')
 
 # compute flux uncertainty in uJy
 dF = 1.e-9*1.e26*1.e6*((np.pi/180.)*(th_pix/3600.))**2*dnIn_ppix*(lam/c0) # uJy
 
 dF_single = dF
-n_reps = 1./20.
+n_reps = 1./3.
 dF = dF * np.sqrt(n_reps) #t_int / (obs_eff * 60) / t_dp) 
 
 # assume some number of sigma
@@ -358,7 +358,7 @@ if verbose == 2:
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_dF_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_dF_R'+str(R)+'_h4rg.pdf')
 
 if verbose == 2:
     plt.clf()
@@ -378,7 +378,7 @@ if verbose == 2:
     ax.legend()
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_Mab_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_Mab_R'+str(R)+'_h4rg.pdf')
 
 if verbose == 2:
     plt.clf()
@@ -395,7 +395,7 @@ if verbose == 2:
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_Sline_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_Sline_R'+str(R)+'_h4rg.pdf')
     
 if verbose == 2:
     plt.close()
@@ -407,6 +407,6 @@ dout['var2'] = dF
 dout['var3'] = Mab
 dout['var4'] = Sline
 
-np.savetxt('cdim_sbsens_out_R'+str(R)+'.txt',dout,fmt='%f, %f, %f, %f')
+np.savetxt('cdim_sbsens_out_R'+str(R)+'_h4rg.txt',dout,fmt='%f, %f, %f, %f')
 
 ### return
