@@ -58,6 +58,7 @@ if blocking == 0:
     OD=0.
 else:
     OD = - np.log10(blocking)
+Npix = 9 # number of pixels contributing to a source
 
 pixelfac = 5335.67/R  # the number of pixels that measure a single resolution
                   # element of width R
@@ -329,14 +330,14 @@ if verbose == 2:
     plt.savefig('cdim_sbsens_ratio_R'+str(R)+'.pdf')
 
 # compute flux uncertainty in uJy
-dF = 1.e-9*1.e26*1.e6*((np.pi/180.)*(th_pix/3600.))**2*dnIn_ppix*(lam/c0) # uJy
+dF = 1.e-9*1.e26*1.e6*((np.pi/180.)*(th_pix/3600.))**2*dnIn_ppix*(lam/c0) * np.sqrt(Npix) # uJy
 
 dF_single = dF
 n_reps = 1./20.
 dF = dF * np.sqrt(n_reps) #t_int / (obs_eff * 60) / t_dp) 
 
 # assume some number of sigma
-Nsig   = 1
+Nsig   = 5
 # convert to Mab
 Mab = -2.5*np.log10(Nsig*1.e-6*dF/3631.)
 Mab_single = -2.5*np.log10(Nsig*1e-6*dF_single/3631.)
@@ -401,12 +402,13 @@ if verbose == 2:
     plt.close()
 
 # save the result of our labors
-dout = np.zeros(lam.size,dtype=[('var1',float),('var2',float),('var3',float),('var4',float)])
+dout = np.zeros(lam.size,dtype=[('var1',float),('var2',float),('var3',float),('var4',float)],('var5',float))
 dout['var1'] = lam
-dout['var2'] = dF
-dout['var3'] = Mab
-dout['var4'] = Sline
+dout['var2'] = dnIn_ppix
+dout['var3'] = dF
+dout['var4'] = Mab
+dout['var5'] = Sline
 
-np.savetxt('cdim_sbsens_out_R'+str(R)+'.txt',dout,fmt='%f, %f, %f, %f')
+np.savetxt('cdim_sbsens_out_R'+str(R)+'.txt',dout,fmt='%f, %f, %f, %f, %f')
 
 ### return
