@@ -51,7 +51,7 @@ T_samp = 1.5 # sample time, s
 t_int = 250. # integration time, s
 T_det = 35. # detector temperature, K
 T_scope = 70. # telescope temperature, K
-n_optics = 5 # number of optics in optical chain
+n_optics = 3 # number of optics in optical chain
 eta_lvf = 0.80 # optical efficiency of lvf
 blocking = 0 #1.995e-5 #1e-5 # out of band blocking
 if blocking == 0:
