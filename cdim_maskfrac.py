@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from scipy import constants as cst
 from scipy.optimize import curve_fit
 from scipy.signal import savgol_filter
-from mpl_toolkits.mplot3d import Axes3D
+#from mpl_toolkits.mplot3d import Axes3D
 
 def func(x, a, b, c):
     return a*(x/b)**(-0.75)*np.exp(-x/b)+c
@@ -54,18 +54,28 @@ cdim_lambda = np.arange(lmin,lmax,0.1)
 # this is the diffraction limit at each wavelength in arcsec
 diffraction_limit = 1.03 * (cdim_lambda * 1e-6) / Apert * rtoa
 
+text_file = open('lookup/patrick_psf.txt')
+rows = [[float(x) for x in line.split(',')[:]] for line in text_file]
+cols = [list(col) for col in zip(*rows)]
+text_file.close
+
+psflambda = np.asarray(cols[0])
+psfwidth = np.asarray(cols[1])
+
+psf_width = np.interp(cdim_lambda,psflambda,psfwidth)
+
 # this is how many FWHM we would cut for each source based on
 # the difftraction limt 
-dl_safety = n_width * diffraction_limit
+dl_safety = n_width * psf_width
 
 # make a copy we can do things with
 cut_width = dl_safety
 
 # everywhere the pixel size is larger than the number of pixels
 # we would cut, turn into the pixel size
-whpl = np.where(cut_width < th_pix)
+#whpl = np.where(cut_width < th_pix)
 
-cut_width[whpl] = th_pix
+#cut_width[whpl] = th_pix
 
 # now the previous number is in width, we want in area
 cut_area = np.pi * (cut_width / 2)**2
@@ -84,15 +94,21 @@ for counter, lam in enumerate(cut_area):
         cut_area_fix[counter] = 16
     if cut_area[counter] > 16 and cut_area[counter] <= 25:
         cut_area_fix[counter] = 25
-
+    if cut_area[counter] > 25 and cut_area[counter] <= 36:
+        cut_area_fix[counter] = 36 
+    if cut_area[counter] > 36 and cut_area[counter] <= 49:
+        cut_area_fix[counter] = 49
+        
 if verbose == 2:
     ax.plot(cdim_lambda,diffraction_limit,linestyle='-',label='Diffraction Limit, FWHM')
     ax.plot(cdim_lambda,np.sqrt(diffraction_limit**2 + 0.25**2),linestyle='-',label='Diffraction + Pointing Smear')
     ax.plot(cdim_lambda,np.repeat(th_pix,np.size(cdim_lambda)),linestyle='-',label='Pixel Size')
+    ax.plot(cdim_lambda,psf_width,linestyle="-",label='Jim PSF')
     ax.plot(cdim_lambda,cut_width,linestyle='-',label='Cut Function')
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'Width (arcsec)')
     ax.set_xlim([0.75,7.5])
+    ax.set_ylim([0,9])
 
     plt.legend(loc=2)
     plt.tight_layout()
@@ -117,6 +133,7 @@ xmagab = np.arange(13,31)
 
 markmag = np.array([31,30,29,30,32,29,26,26,26,26])
 #markmag = np.array([26,26,26,26,26,26,26,26,26,26])
+#markmag = np.array([21,21,21,21,21,21,21,21,21,21])
 
 for ifile,thisfile in enumerate(countfiles):
     my_data = np.genfromtxt("lookup/"+thisfile, delimiter=',')
@@ -154,8 +171,11 @@ plt.legend(loc=4,fontsize=8)
 plt.savefig('cdim_maskfrac_counts.pdf')
 #plt.show()
 
+xmagab = xmagab[xmagab <= 24]
 
 npersd = np.interp(cdim_lambda,countlambda,magsurf[len(xmagab)-1,:])
+
+print npersd
 
 cut_as = cut_area * 10**(npersd)
     
@@ -168,7 +188,7 @@ if verbose == 2:
     ax = fig.add_subplot(1,1,1)
     ax.plot(cdim_lambda,cut_frac,linestyle='-')
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
-    ax.set_ylabel(r'Fraction of Pixels Lost at m$_{\rm AB}=27$')
+    ax.set_ylabel(r'Fraction of Pixels Lost at m$_{\rm AB}=24$')
     ax.set_xlim([0.75,7.5])
 
     #plt.legend(loc=2)
