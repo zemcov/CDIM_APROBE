@@ -17,13 +17,16 @@ import pylab as pl
 import matplotlib.pyplot as plt
 from scipy import constants as cst
 from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import NullFormatter
+import matplotlib.ticker
 
 verbose = 2 # control verbosity
 
 if verbose == 2:
     fig=plt.figure(figsize=(6.5,5))
     ax = fig.add_subplot(1,1,1)
-    tmpl = [0.8,1.,1.2,1.5,2.,2.5,3.,4.,5.,6.,7.5]
+    tmpl = [0.8,1.,1.2,1.5,2.,2.5,3.,4.,5.]
+    tmplab = ['0.8','1.0','1.2','1.5','2.0','2.5','3.0','4.0','5.0']
 
 ## Physical cst
 c0 = cst.value('speed of light in vacuum')*1.e6 #um/s
@@ -51,7 +54,7 @@ T_samp = 1.5 # sample time, s
 t_int = 250. # integration time, s
 T_det = 35. # detector temperature, K
 T_scope = 70. # telescope temperature, K
-n_optics = 5 # number of optics in optical chain
+n_optics = 3 # number of optics in optical chain
 eta_lvf = 0.80 # optical efficiency of lvf
 blocking = 0 #1.995e-5 #1e-5 # out of band blocking
 if blocking == 0:
@@ -63,7 +66,7 @@ pixelfac = 5335.67/R  # the number of pixels that measure a single resolution
                   # element of width R
 nativeR = pixelfac*R # native resolution per pixel column 
 pix_format = np.array([2048,2048]) # array format
-fp_format = np.array([6,4]) # number and layout of detectors
+fp_format = np.array([5,4]) # number and layout of detectors
 
 # angle subtended by a single detector
 th_pix   = 3600.*180./np.pi*(Pitch*1.e-6)/(Apert*fnum)
@@ -77,15 +80,13 @@ if verbose:
 
 # this hard codes the type of detector (H2RG_NN) in each element of the array 
 fp_det_type = np.zeros(fp_pix[0])
-fp_det_type[0:2048] = 1
-fp_det_type[2048:3*2048] = 2
+fp_det_type[0:1*2048] = 1
+fp_det_type[1*2048:3*2048] = 2
 fp_det_type[3*2048:5*2048] = 3
-fp_det_type[5*2048:6*2048] = 4
 fp_cut_off = np.zeros(fp_pix[0])
-fp_cut_off[0:2048] = 1.75
-fp_cut_off[2048:3*2048] = 2.5
+fp_cut_off[0:1*2048] = 1.75
+fp_cut_off[1*2048:3*2048] = 2.5
 fp_cut_off[3*2048:5*2048] = 5.2
-fp_cut_off[5*2048:6*2048] = 8.0         
 
 # set up the beginning wavelength
 lam = np.zeros(fp_pix[0])
@@ -95,7 +96,7 @@ lam[0] = lmin
 # pre-computed wavelength jump
 for ipix in range(1,fp_pix[0]):
     lam[ipix] = lam[ipix-1] * (1. + 1./nativeR)
-    
+
 # read in optical efficiency of mirrors
 text_file = open('lookup/eta_au.txt')
 rows = [[float(x) for x in line.split(',')[:]] for line in text_file]
@@ -127,22 +128,22 @@ eta_lvf = eta_lvf * np.ones(fp_pix[0])
 eta_tot = eta_opt * eta_fpa * eta_lvf
 
 if verbose == 2:
-    ax.semilogx(lam,eta_opt,linestyle='-',label='AU Optics, 5 reflections')
+    ax.semilogx(lam,eta_opt,linestyle='-',label='AU Optics, 3 reflections')
     ax.semilogx(lam,eta_lvf,linestyle='-',label='Dispersive Element')
     ax.semilogx(lam,eta_fpa,linestyle='-',label='FPA QE')
     ax.semilogx(lam,eta_tot,linestyle='-',marker='',\
                 label='Total System Efficiency',linewidth=2)
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'Optical Efficiency')
-    ax.set_xlim([0.75,7.5])
+    ax.set_xlim([0.75,5.2])
     
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.legend(loc=4)
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_eta_R'+str(R)+'.pdf')
-
+    plt.savefig('cdim_sbsens_doubleup_eta_R'+str(R)+'.pdf')
+    
 # compute entendue of a detector
 AOmega     = 0.25*np.pi*(Apert**2)*(((th_pix/3600)*np.pi/180.)**2) #m^2/sr
 if verbose:
@@ -218,14 +219,14 @@ if blocking > 0:
 
         ax.set_xlabel(r'$\lambda$ ($\mu$m)')
         ax.set_ylabel(r'Ratio of In-band i to Out of Band i at OD%1.1f' % OD)
-        ax.set_xlim([0.75,7.5])
+        ax.set_xlim([0.75,5.2])
         ax.set_ylim([0.1 * np.min(blockingratio),10*np.max(blockingratio)])
         ax.xaxis.set_ticks(tmpl)
         ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
         ax.set_xticklabels(['','',''],minor=True)
         
         plt.tight_layout()
-        plt.savefig('cdim_sbsens_blocking_R'+str(R)+'.pdf')
+        plt.savefig('cdim_sbsens_doubleup_blocking_R'+str(R)+'.pdf')
 
 # compute the total photocurrent
 i_photo = i_pass + i_block
@@ -272,7 +273,7 @@ if verbose == 2:
 
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'Current at Detector (e$^{-}$/s)')
-    ax.set_xlim([0.5,7.5])
+    ax.set_xlim([0.5,5.2])
     ax.set_ylim([1e-3,5e1])
 
     ax.xaxis.set_ticks(tmpl)
@@ -280,12 +281,16 @@ if verbose == 2:
     
     plt.legend(loc=2,fontsize=12)
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_iphoto_R'+str(R)+'.pdf')
-
+    plt.savefig('cdim_sbsens_doubleup_iphoto_R'+str(R)+'.pdf')
+    
 # rms noise on the detector per integration
 dnIn_ppix = np.sqrt(i_tot*t_int+dQ_rin**2)/t_int/i_sky*sky_bkg
 dnIn_ppix_rn = np.sqrt(DC*t_int+dQ_rin**2)/t_int/i_sky*sky_bkg
 dnIn_ppix_sky = np.sqrt(i_photo*t_int)/t_int/i_sky*sky_bkg
+
+dnIn_ppix[0:2048] = dnIn_ppix[0:2048] / np.sqrt(2)
+dnIn_ppix_rn[0:2048] = dnIn_ppix_rn[0:2048] / np.sqrt(2)
+dnIn_ppix_sky[0:2048] = dnIn_ppix_sky[0:2048] / np.sqrt(2)
 
 if verbose == 2:
     plt.clf()
@@ -299,16 +304,19 @@ if verbose == 2:
 
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'$\delta \nu I_{\nu}$ / pixel / 250s (nW m$^{-2}$ sr$^{-1}$, $1 \sigma$)')
-    ax.set_xlim([0.75,7.5])
-    ax.set_ylim([1e0,1e4])
 
+    ax.set_xlim([0.74,5.2])
+    ax.set_ylim([1e0,1e4])
+    
+    plt.minorticks_off()
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.legend(loc=3,fontsize=12)
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_dnIn_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_doubleup_dnIn_R'+str(R)+'.pdf')
 
+    
 if verbose == 2:
     plt.clf()
 
@@ -319,14 +327,15 @@ if verbose == 2:
 
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'Ratio of photon noise to detector noise')
-    ax.set_xlim([0.75,7.5])
+    ax.set_xlim([0.74,5.2])
     ax.set_ylim([0,3.1])
 
+    plt.minorticks_off()
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_ratio_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_doubleup_ratio_R'+str(R)+'.pdf')
 
 print dnIn_ppix
     
@@ -353,14 +362,15 @@ if verbose == 2:
     ax.loglog(lam,dF,linestyle='-',marker='')
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'$\delta F$ ($\mu$Jy, 1$\sigma$)')
-    ax.set_xlim([0.5,7.5])
-    ax.set_ylim([0.5,50])
+    ax.set_xlim([0.74,5.2])
+    ax.set_ylim([0.1,10])
 
+    plt.minorticks_off()
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_dF_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_doubleup_dF_R'+str(R)+'.pdf')
 
 if verbose == 2:
     plt.clf()
@@ -371,16 +381,17 @@ if verbose == 2:
     ax.semilogx(lam,Mab_single,linestyle='-',marker='',label="Single Integration")
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'$M_{\rm AB}$ (1$\sigma$)')
-    ax.set_xlim([0.75,7.5])
+    ax.set_xlim([0.74,5.2])
     ax.set_ylim([20,28])
 
+    plt.minorticks_off()
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
 
     ax.legend()
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_Mab_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_doubleup_Mab_R'+str(R)+'.pdf')
 
 if verbose == 2:
     plt.clf()
@@ -390,14 +401,15 @@ if verbose == 2:
     ax.semilogx(lam,Sline,linestyle='-',marker='')
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'Line Sensitivity (1$\times 10^{-18}$ erg s$^{-1}$ cm$^{-2}$, 1$\sigma$)')
-    ax.set_xlim([0.75,7.5])
+    ax.set_xlim([0.74,5.2])
     ax.set_ylim([0,20])
 
+    plt.minorticks_off()
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
     
     plt.tight_layout()
-    plt.savefig('cdim_sbsens_Sline_R'+str(R)+'.pdf')
+    plt.savefig('cdim_sbsens_doubleup_Sline_R'+str(R)+'.pdf')
     
 if verbose == 2:
     plt.close()
@@ -409,6 +421,6 @@ dout['var2'] = dF
 dout['var3'] = Mab
 dout['var4'] = Sline
 
-np.savetxt('cdim_sbsens_out_R'+str(R)+'.txt',dout,fmt='%f, %f, %f, %f')
+np.savetxt('cdim_sbsens_doubleup_out_R'+str(R)+'.txt',dout,fmt='%f, %f, %f, %f')
 
 ### return
