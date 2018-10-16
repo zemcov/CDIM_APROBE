@@ -17,6 +17,7 @@ import pylab as pl
 import matplotlib.pyplot as plt
 from scipy import constants as cst
 from matplotlib.ticker import FormatStrFormatter
+from scipy.signal import savgol_filter
 
 verbose = 2 # control verbosity
 
@@ -54,6 +55,7 @@ T_scope = 70. # telescope temperature, K
 n_optics = 3 # number of optics in optical chain
 eta_lvf = 0.80 # optical efficiency of lvf
 blocking = 0 #1.995e-5 #1e-5 # out of band blocking
+blockingfile = 0 # do we use the blocking information from Omega?
 if blocking == 0:
     OD=0.
 else:
@@ -186,8 +188,30 @@ i_tele = 1.e-9*tele_bkg*np.pi*(Pitch*1e-6)**2/(R*hc/lam) # e-/s
 
 i_block = 0.* i_tele
 i_pass = i_sky + i_tele
-if blocking > 0:
+if blocking > 0 or blockingfile == 1:
     print "Computing blocking..."
+
+    blocking = blocking * np.ones(np.size(lam))
+    
+    if blockingfile==1:
+        # read in filter profiles
+        text_file = open('lookup/filters/filter_profiles.csv')
+        rows = [[float(x) for x in line.split(',')[:]] for line in text_file]
+        cols = [list(col) for col in zip(*rows)]
+        text_file.close
+
+        lambda_file = np.asarray(cols[0])/1000.
+        lambda_trans = np.asarray(cols[1])/100.
+
+        lambda_trans_filt = savgol_filter(lambda_trans,51,1)*0.3
+
+        blocking = np.interp(lam,lambda_file,lambda_trans_filt,right=0.0)
+
+        plt.clf()
+        ax = fig.add_subplot(1,1,1)
+        ax.loglog(lam,blocking)
+        plt.savefig('test.pdf')        
+    
     i_pass = np.zeros(fp_pix[0])
     i_block = np.zeros(fp_pix[0])
     for ipix in range(1,fp_pix[0]):
@@ -200,14 +224,18 @@ if blocking > 0:
 
         sumone = np.sum(sky_bkg[tp]*eta_filt[tp]*(lam[tp]/R))
         sumtwo = np.sum(tele_bkg[tp]*eta_filt[tp]*(lam[tp]/R))
-        sumthr = np.sum(sky_bkg[tp]*blocking*(lam[tp]/R))
-        sumfor = np.sum(tele_bkg[tp]*blocking*(lam[tp]/R))
+        sumthr = np.sum(sky_bkg[tp]*blocking[tp]*(lam[tp]/R))
+        sumfor = np.sum(tele_bkg[tp]*blocking[tp]*(lam[tp]/R))
         
         i_pass[ipix] = 1e-9 * AOmega / hc * (sumone + 1.8e-5**2 * sumtwo)
         i_block[ipix] = 1e-9 * AOmega / hc * (sumthr + 1.8e-5**2 * sumfor) 
         
     blockingratio = i_pass/i_block
     blockingratio[0] = blockingratio[1]
+
+
+
+
     
     if verbose == 2:
 
@@ -404,7 +432,7 @@ if verbose == 2:
     plt.close()
 
 # save the result of our labors
-dout = np.zeros(lam.size,dtype=[('var1',float),('var2',float),('var3',float),('var4',float)],('var5',float))
+dout = np.zeros(lam.size,dtype=[('var1',float),('var2',float),('var3',float),('var4',float),('var5',float)])
 dout['var1'] = lam
 dout['var2'] = dnIn_ppix
 dout['var3'] = dF
