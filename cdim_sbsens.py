@@ -54,7 +54,7 @@ T_det = 35. # detector temperature, K
 T_scope = 70. # telescope temperature, K
 n_optics = 3 # number of optics in optical chain
 eta_lvf = 0.80 # optical efficiency of lvf
-blocking = 0 #1.995e-5 #1e-5 # out of band blocking
+blocking = 1e-5 #1.995e-5 #1e-5 # out of band blocking
 blockingfile = 0 # do we use the blocking information from Omega?
 if blocking == 0:
     OD=0.
@@ -161,8 +161,8 @@ dQ_lam[np.where(fp_det_type == 4)] = dQ[3]
 # convert to read noise appropriate to sample up the ramp
 dQ_rin  = dQ_lam*np.sqrt(6.*T_samp/t_int)
 if verbose:
-    whsmpl = (np.abs((lam - 1.0)) == np.min(np.abs(lam - 1.0)))
-    print "Read noise at 1.0 microns is: " + str(dQ_rin[whsmpl]) + " e-/read."
+    whsmpl = (np.abs((lam - 4.0)) == np.min(np.abs(lam - 4.0)))
+    print "Read noise at 4.0 microns is: " + str(dQ_rin[whsmpl]) + " e-/read."
 
 # compute the sky background assuming two black bodies consistent
 # with reflected solar and thermal ZL 
@@ -171,7 +171,7 @@ sky_bkg = 6.7e3/lam**4/(np.exp(hc/(kb*5500.*lam))-1.) \
 # include the "above minimum" factor
 sky_bkg    *= ZL_fac
 if verbose:
-    print "Sky background at 1.0 microns is: " + str(sky_bkg[whsmpl]) + \
+    print "Sky background at 4.0 microns is: " + str(sky_bkg[whsmpl]) + \
         " nW/m^2/sr."
 
 # compute the bakcground from the telescope
@@ -267,14 +267,16 @@ if verbose == 2:
 
     ax = fig.add_subplot(1,1,1)
 
-    ax.loglog(lam,i_photo,linestyle='-',marker='',\
-              label=r'Total $i_{\rm photo}$')
-    ax.loglog(lam,i_sky,linestyle='-.',marker='',\
-              label=r'$i_{\rm photo}$ from sky in $T_{\rm int}=250$s')
+    #ax.loglog(lam,i_photo,linestyle='-',marker='',\
+    #          label=r'Total $i_{\rm photo}$')
+    ax.loglog(lam,i_sky,linestyle='-',marker='',\
+              label=r'$i_{\rm photo}$ from ZL in $T_{\rm int}=250$s')
     ax.loglog(lam,i_tele,linestyle='-',marker='',\
-              label=r'$i_{\rm photo}$ from telescope at T=70K')
+              label=r'$i_{\rm photo}$ from 70K telescope')
+    #ax.loglog(lam,i_block,linestyle='-',marker='',\
+    #          label=r'$i_{\rm photo}$ from filter leakage OD%1.1f' % OD)
     ax.loglog(lam,i_block,linestyle='-',marker='',\
-              label=r'$i_{\rm photo}$ from filter leakage OD%1.1f' % OD)
+              label=r'$i_{\rm photo}$ from out of band light')
 
 # compute dark current - these come from empirical measurements
 # taken from the literature
@@ -291,24 +293,25 @@ DC[np.where(fp_det_type == 3)] = dc_three
 DC[np.where(fp_det_type == 4)] = dc_four
 
 if verbose == 2:
-    ax.loglog(lam,DC,linestyle='-',marker='',label=r'$i_{\rm dark}$ at T=35 K')
+    ax.loglog(lam,DC,linestyle='-',marker='',label=r'$i_{\rm dark}$ for 35 K detectors')
 
 # total photocurrent measured by the detector    
 i_tot = i_photo + DC
 
 if verbose == 2:
-    ax.loglog(lam,i_tot,linestyle='--',marker='',label=r'$i_{\rm total}$')
+    ax.loglog(lam,i_tot,linestyle='-',marker='',label=r'$i_{\rm total}$')
 
-    ax.set_xlabel(r'$\lambda$ ($\mu$m)')
-    ax.set_ylabel(r'Current at Detector (e$^{-}$/s)')
-    ax.set_xlim([0.5,7.5])
-    ax.set_ylim([1e-3,5e1])
+    ax.set_xlabel(r'$\lambda$ ($\mu$m)',fontsize=15)
+    ax.set_ylabel(r'Current at Detector (e$^{-}$/s)',fontsize=15)
+    ax.set_xlim([0.75,7.5])
+    ax.set_ylim([1e-3,1e1])
 
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+    ax.set_xticklabels(['','',''],minor=True)
     
     plt.legend(loc=2,fontsize=12)
-    plt.tight_layout()
+    plt.tight_layout(pad=1.5)
     plt.savefig('cdim_sbsens_iphoto_R'+str(R)+'.pdf')
 
 # rms noise on the detector per integration
