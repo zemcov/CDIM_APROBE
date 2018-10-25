@@ -404,7 +404,7 @@ if verbose == 2:
     plt.close()
 
 # save the result of our labors
-dout = np.zeros(lam.size,dtype=[('var1',float),('var2',float),('var3',float),('var4',float)],('var5',float))
+dout = np.zeros(lam.size,dtype=[('var1',float),('var2',float),('var3',float),('var4',float),('var5',float)])
 dout['var1'] = lam
 dout['var2'] = dnIn_ppix
 dout['var3'] = dF
