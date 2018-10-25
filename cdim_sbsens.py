@@ -17,6 +17,7 @@ import pylab as pl
 import matplotlib.pyplot as plt
 from scipy import constants as cst
 from matplotlib.ticker import FormatStrFormatter
+from scipy.signal import savgol_filter
 
 verbose = 2 # control verbosity
 
@@ -53,7 +54,8 @@ T_det = 35. # detector temperature, K
 T_scope = 70. # telescope temperature, K
 n_optics = 3 # number of optics in optical chain
 eta_lvf = 0.80 # optical efficiency of lvf
-blocking = 0 #1.995e-5 #1e-5 # out of band blocking
+blocking = 1e-5 #1.995e-5 #1e-5 # out of band blocking
+blockingfile = 0 # do we use the blocking information from Omega?
 if blocking == 0:
     OD=0.
 else:
@@ -159,8 +161,8 @@ dQ_lam[np.where(fp_det_type == 4)] = dQ[3]
 # convert to read noise appropriate to sample up the ramp
 dQ_rin  = dQ_lam*np.sqrt(6.*T_samp/t_int)
 if verbose:
-    whsmpl = (np.abs((lam - 1.0)) == np.min(np.abs(lam - 1.0)))
-    print "Read noise at 1.0 microns is: " + str(dQ_rin[whsmpl]) + " e-/read."
+    whsmpl = (np.abs((lam - 4.0)) == np.min(np.abs(lam - 4.0)))
+    print "Read noise at 4.0 microns is: " + str(dQ_rin[whsmpl]) + " e-/read."
 
 # compute the sky background assuming two black bodies consistent
 # with reflected solar and thermal ZL 
@@ -169,7 +171,7 @@ sky_bkg = 6.7e3/lam**4/(np.exp(hc/(kb*5500.*lam))-1.) \
 # include the "above minimum" factor
 sky_bkg    *= ZL_fac
 if verbose:
-    print "Sky background at 1.0 microns is: " + str(sky_bkg[whsmpl]) + \
+    print "Sky background at 4.0 microns is: " + str(sky_bkg[whsmpl]) + \
         " nW/m^2/sr."
 
 # compute the bakcground from the telescope
@@ -186,8 +188,30 @@ i_tele = 1.e-9*tele_bkg*np.pi*(Pitch*1e-6)**2/(R*hc/lam) # e-/s
 
 i_block = 0.* i_tele
 i_pass = i_sky + i_tele
-if blocking > 0:
+if blocking > 0 or blockingfile == 1:
     print "Computing blocking..."
+
+    blocking = blocking * np.ones(np.size(lam))
+    
+    if blockingfile==1:
+        # read in filter profiles
+        text_file = open('lookup/filters/filter_profiles.csv')
+        rows = [[float(x) for x in line.split(',')[:]] for line in text_file]
+        cols = [list(col) for col in zip(*rows)]
+        text_file.close
+
+        lambda_file = np.asarray(cols[0])/1000.
+        lambda_trans = np.asarray(cols[1])/100.
+
+        lambda_trans_filt = savgol_filter(lambda_trans,51,1)*0.3
+
+        blocking = np.interp(lam,lambda_file,lambda_trans_filt,right=0.0)
+
+        plt.clf()
+        ax = fig.add_subplot(1,1,1)
+        ax.loglog(lam,blocking)
+        plt.savefig('test.pdf')        
+    
     i_pass = np.zeros(fp_pix[0])
     i_block = np.zeros(fp_pix[0])
     for ipix in range(1,fp_pix[0]):
@@ -200,14 +224,18 @@ if blocking > 0:
 
         sumone = np.sum(sky_bkg[tp]*eta_filt[tp]*(lam[tp]/R))
         sumtwo = np.sum(tele_bkg[tp]*eta_filt[tp]*(lam[tp]/R))
-        sumthr = np.sum(sky_bkg[tp]*blocking*(lam[tp]/R))
-        sumfor = np.sum(tele_bkg[tp]*blocking*(lam[tp]/R))
+        sumthr = np.sum(sky_bkg[tp]*blocking[tp]*(lam[tp]/R))
+        sumfor = np.sum(tele_bkg[tp]*blocking[tp]*(lam[tp]/R))
         
         i_pass[ipix] = 1e-9 * AOmega / hc * (sumone + 1.8e-5**2 * sumtwo)
         i_block[ipix] = 1e-9 * AOmega / hc * (sumthr + 1.8e-5**2 * sumfor) 
         
     blockingratio = i_pass/i_block
     blockingratio[0] = blockingratio[1]
+
+
+
+
     
     if verbose == 2:
 
@@ -239,14 +267,16 @@ if verbose == 2:
 
     ax = fig.add_subplot(1,1,1)
 
-    ax.loglog(lam,i_photo,linestyle='-',marker='',\
-              label=r'Total $i_{\rm photo}$')
-    ax.loglog(lam,i_sky,linestyle='-.',marker='',\
-              label=r'$i_{\rm photo}$ from sky in $T_{\rm int}=250$s')
+    #ax.loglog(lam,i_photo,linestyle='-',marker='',\
+    #          label=r'Total $i_{\rm photo}$')
+    ax.loglog(lam,i_sky,linestyle='-',marker='',\
+              label=r'$i_{\rm photo}$ from ZL in $T_{\rm int}=250$s')
     ax.loglog(lam,i_tele,linestyle='-',marker='',\
-              label=r'$i_{\rm photo}$ from telescope at T=70K')
+              label=r'$i_{\rm photo}$ from 70K telescope')
+    #ax.loglog(lam,i_block,linestyle='-',marker='',\
+    #          label=r'$i_{\rm photo}$ from filter leakage OD%1.1f' % OD)
     ax.loglog(lam,i_block,linestyle='-',marker='',\
-              label=r'$i_{\rm photo}$ from filter leakage OD%1.1f' % OD)
+              label=r'$i_{\rm photo}$ from out of band light')
 
 # compute dark current - these come from empirical measurements
 # taken from the literature
@@ -263,24 +293,25 @@ DC[np.where(fp_det_type == 3)] = dc_three
 DC[np.where(fp_det_type == 4)] = dc_four
 
 if verbose == 2:
-    ax.loglog(lam,DC,linestyle='-',marker='',label=r'$i_{\rm dark}$ at T=35 K')
+    ax.loglog(lam,DC,linestyle='-',marker='',label=r'$i_{\rm dark}$ for 35 K detectors')
 
 # total photocurrent measured by the detector    
 i_tot = i_photo + DC
 
 if verbose == 2:
-    ax.loglog(lam,i_tot,linestyle='--',marker='',label=r'$i_{\rm total}$')
+    ax.loglog(lam,i_tot,linestyle='-',marker='',label=r'$i_{\rm total}$')
 
-    ax.set_xlabel(r'$\lambda$ ($\mu$m)')
-    ax.set_ylabel(r'Current at Detector (e$^{-}$/s)')
-    ax.set_xlim([0.5,7.5])
-    ax.set_ylim([1e-3,5e1])
+    ax.set_xlabel(r'$\lambda$ ($\mu$m)',fontsize=15)
+    ax.set_ylabel(r'Current at Detector (e$^{-}$/s)',fontsize=15)
+    ax.set_xlim([0.75,7.5])
+    ax.set_ylim([1e-3,1e1])
 
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+    ax.set_xticklabels(['','',''],minor=True)
     
     plt.legend(loc=2,fontsize=12)
-    plt.tight_layout()
+    plt.tight_layout(pad=1.5)
     plt.savefig('cdim_sbsens_iphoto_R'+str(R)+'.pdf')
 
 # rms noise on the detector per integration
