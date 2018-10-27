@@ -17,7 +17,7 @@ import pylab as pl
 import matplotlib.pyplot as plt
 from scipy import constants as cst
 from matplotlib.ticker import FormatStrFormatter
-from scipy.signal import savgol_filter
+#from scipy.signal import savgol_filter
 
 verbose = 2 # control verbosity
 
@@ -45,7 +45,7 @@ obs_eff = 0.8 # observation efficiency (that is, fraction of time
 t_dp = 104 # minutes per band per resolution element, deep survey
 t_sh = 14.2 # minutes per band per resolution element, shallow survey
 Pitch = 18. # detector pixel pitch, um
-ZL_fac = 1.5 # multiplicative factor describing mean Zodiacal Light
+ZL_fac = 1.0 # multiplicative factor describing mean Zodiacal Light
              # brightness above the NEP minimum  
 dQ = [10,10.5,10.5,21./np.sqrt(2)] # read noise, single sample, e-
 T_samp = 1.5 # sample time, s
@@ -60,7 +60,7 @@ if blocking == 0:
     OD=0.
 else:
     OD = - np.log10(blocking)
-Npix = 9 # number of pixels contributing to a source
+Npix = 7 # number of pixels contributing to a source
 
 pixelfac = 5335.67/R  # the number of pixels that measure a single resolution
                   # element of width R
@@ -130,7 +130,7 @@ eta_lvf = eta_lvf * np.ones(fp_pix[0])
 eta_tot = eta_opt * eta_fpa * eta_lvf
 
 if verbose == 2:
-    ax.semilogx(lam,eta_opt,linestyle='-',label='AU Optics, 5 reflections')
+    ax.semilogx(lam,eta_opt,linestyle='-',label='AU Optics, 3 reflections')
     ax.semilogx(lam,eta_lvf,linestyle='-',label='Dispersive Element')
     ax.semilogx(lam,eta_fpa,linestyle='-',label='FPA QE')
     ax.semilogx(lam,eta_tot,linestyle='-',marker='',\
@@ -138,6 +138,7 @@ if verbose == 2:
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'Optical Efficiency')
     ax.set_xlim([0.75,7.5])
+    ax.set_ylim([0,1])
     
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
@@ -161,19 +162,25 @@ dQ_lam[np.where(fp_det_type == 4)] = dQ[3]
 # convert to read noise appropriate to sample up the ramp
 dQ_rin  = dQ_lam*np.sqrt(6.*T_samp/t_int)
 if verbose:
-    whsmpl = (np.abs((lam - 4.0)) == np.min(np.abs(lam - 4.0)))
-    print "Read noise at 4.0 microns is: " + str(dQ_rin[whsmpl]) + " e-/read."
+    whsmpl = (np.abs((lam - 1.0)) == np.min(np.abs(lam - 1.0)))
+    print "Read noise at 1.0 microns is: " + str(dQ_rin[whsmpl]) + " e-/read."
 
 # compute the sky background assuming two black bodies consistent
 # with reflected solar and thermal ZL 
-sky_bkg = 6.7e3/lam**4/(np.exp(hc/(kb*5500.*lam))-1.) \
-          + 5.120*1.e9/lam**4/(np.exp(hc/(kb*250.*lam))-1.) # in nW/m^2/sr
+sky_bkg = 0.85*6.7e3/lam**4/(np.exp(hc/(kb*5500.*lam))-1.) \
+          + 0.85*5.120*1.e9/lam**4/(np.exp(hc/(kb*250.*lam))-1.) # in nW/m^2/sr
 # include the "above minimum" factor
 sky_bkg    *= ZL_fac
 if verbose:
-    print "Sky background at 4.0 microns is: " + str(sky_bkg[whsmpl]) + \
+    print "Sky background at 1.0 microns is: " + str(sky_bkg[whsmpl]) + \
         " nW/m^2/sr."
 
+zlout = np.zeros(lam.size,dtype=[('var1',float),('var2',float)])
+zlout['var1'] = lam
+zlout['var2'] = sky_bkg
+
+np.savetxt('cdim_sbsens_ZL_R'+str(R)+'.txt',zlout,fmt='%f, %f')
+        
 # compute the bakcground from the telescope
 tele_bkg = 2. * hc * c0 * 1e-12 / ((1e-6*lam)**4*(np.exp(hc/(kb*T_scope*lam)) - 1)) * (1.-eta_au) * 1e9 # in nW/m^2/sr
 if verbose:
@@ -360,13 +367,15 @@ if verbose == 2:
     plt.tight_layout()
     plt.savefig('cdim_sbsens_ratio_R'+str(R)+'.pdf')
 
-print dnIn_ppix
-    
+if verbose:
+    print "Surface brightness noise at 1.0 microns is: " + \
+      str(dnIn_ppix[whsmpl]) + " nW/m^2/sr."
+        
 # compute flux uncertainty in uJy
 dF = 1.e-9*1.e26*1.e6*((np.pi/180.)*(th_pix/3600.))**2*dnIn_ppix*(lam/c0) * np.sqrt(Npix) # uJy
 
 dF_single = dF
-n_reps = 1./20.
+n_reps = 1./(4.*6.5)
 dF = dF * np.sqrt(n_reps) #t_int / (obs_eff * 60) / t_dp) 
 
 # assume some number of sigma
@@ -382,14 +391,17 @@ if verbose == 2:
 
     ax = fig.add_subplot(1,1,1)
 
-    ax.loglog(lam,dF,linestyle='-',marker='')
+    ax.loglog(lam,dF,linestyle='-',marker='',label="Deep Survey")
+    ax.loglog(lam,dF_single,linestyle='-',marker='',label="Single Integration")
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
     ax.set_ylabel(r'$\delta F$ ($\mu$Jy, 1$\sigma$)')
-    ax.set_xlim([0.5,7.5])
-    ax.set_ylim([0.5,50])
+    ax.set_xlim([0.75,7.5])
+    ax.set_ylim([0.2,20])
 
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
+
+    ax.legend()
     
     plt.tight_layout()
     plt.savefig('cdim_sbsens_dF_R'+str(R)+'.pdf')
@@ -402,9 +414,9 @@ if verbose == 2:
     ax.semilogx(lam,Mab,linestyle='-',marker='',label="Deep Survey")
     ax.semilogx(lam,Mab_single,linestyle='-',marker='',label="Single Integration")
     ax.set_xlabel(r'$\lambda$ ($\mu$m)')
-    ax.set_ylabel(r'$M_{\rm AB}$ (1$\sigma$)')
+    ax.set_ylabel(r'$M_{\rm AB}$ (5$\sigma$)')
     ax.set_xlim([0.75,7.5])
-    ax.set_ylim([20,28])
+    ax.set_ylim([19,25])
 
     ax.xaxis.set_ticks(tmpl)
     ax.xaxis.set_major_formatter(FormatStrFormatter('%1.1f'))
