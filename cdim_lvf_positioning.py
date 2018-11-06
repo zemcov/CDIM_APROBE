@@ -17,7 +17,7 @@ nativeR = pixelfac*R
 
 pix_format = np.array([2048,2048])
 
-fp_format = np.array([6,6])
+fp_format = np.array([6,4])
 fp_pix = pix_format * fp_format
 
 print fp_format[0]
@@ -31,13 +31,13 @@ for ipix in range(1,fp_pix[0]):
 for ipix in range(1,fp_format[0]+1):
     print thislam[ipix * pix_format[0]-1]
 
-lammap = np.zeros((fp_pix[0],fp_pix[1]))
+lammap = np.zeros((fp_pix[1],fp_pix[0]))
 
 
-for ipix in range(0,fp_pix[1]):
-    lammap[ipix,:] = thislam
+for ipix in range(0,fp_pix[0]):
+    lammap[:,ipix] = thislam[ipix]
 
-fig=plt.figure(figsize=(7.5,5))
+fig=plt.figure(figsize=(6.5,3.5))
 
 ax1 = fig.add_subplot(1,1,1)
 ax1.imshow(lammap,clim=[0.5,7.7],extent=[0,fp_pix[0]/3600.,0,fp_pix[1]/3600.],cmap='rainbow')
@@ -64,7 +64,7 @@ norm = clr.Normalize(vmin=0.75,vmax=7.5)
 cx1 = fig.add_axes([0.855,0.125,0.05,0.84])
 cb1 = clbr.ColorbarBase(cx1,cmap='rainbow',norm=norm,orientation='vertical',\
                         )
-cb1.set_label(r'Wavelength ($\mu$m)')
+cb1.set_label(r'Wavelength ($\mu$m)',fontsize=10)
 cb1.set_ticks([0.75,1.1,1.6,2.4,3.5,5.1,7.5])
 
 #plt.show()
